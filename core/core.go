@@ -5,4 +5,5 @@ package core
 // client with the required information
 type Core struct {
 	Database Database
+	// TODO Add existing matches, leaderboards,...
 }
