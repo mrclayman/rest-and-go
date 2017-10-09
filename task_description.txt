@@ -1,0 +1,20 @@
+Naprogramujte REST API ktere bude slouzit jako backend pro hru. Cele API bude vracet data ve formatu JSON.
+API bude obsahovat endpointy:
+
+POST /login
+- v POST datech prijme jmeno a heslo a vrati true/false plus v pripade true i nejaky token pro dalsi komunikaci
+
+GET /leaderboards/<game type>
+- vrati dummy pro dany game type
+
+GET /matches
+- vrati dummy seznam aktivnich zapasu
+
+POST /match/join
+- hrac se pripoji do matche a dostane WebSocket token ktery pouzije na dalsi route
+
+WS /match/room
+- v tento moment se komunikace presunula z REST na WebSocket
+- na tomto WS spojeni bude podpora pro tri zpravy - fire(void), move(vector3 location), get-players(void)
+
+Vsechno routy budou vracet pouzy dummy data, takze neni potreba se tim zatezovat. Logiku take neni nutne napojovat DB nebo tak.
