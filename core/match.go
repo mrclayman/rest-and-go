@@ -4,43 +4,55 @@ import (
 	"math/rand"
 )
 
-// MatchIDType defines the type to represent match ID's
-type MatchIDType uint64
+// MatchID defines the type to represent match ID's
+type MatchID uint64
 
-// MatchTypeIDType is a type designating the type
-// of a match
-type MatchTypeIDType string
+// GameType is a type designating the type of a game/match
+type GameType string
 
-// DeathMatchTypeID indicates the match is of type "deathmatch"
-const DeathMatchTypeID MatchTypeIDType = "deathmatch"
+// DeathMatch indicates the match is of type "deathmatch"
+const DeathMatch GameType = "dm"
 
-// CaptureTheFlagTypeID indicates the match is of type "capture the flag"
-const CaptureTheFlagTypeID MatchTypeIDType = "capture_the_flag"
+// CaptureTheFlag indicates the match is of type "capture the flag"
+const CaptureTheFlag GameType = "ctf"
 
-// LastManStandingTypeID indicates the match is of type "last man standing"
-const LastManStandingTypeID MatchTypeIDType = "last_man_standing"
+// LastManStanding indicates the match is of type "last man standing"
+const LastManStanding GameType = "lms"
 
-// MatchType structure represents an ongoing match
+// Match structure represents an ongoing match
 // and the participating players
-type MatchType struct {
-	MatchID     MatchIDType
-	MatchTypeID MatchTypeIDType
-	Players     PlayersType
+type Match struct {
+	ID    MatchID
+	Type  GameType
+	Ranks PlayerMatchRanksType
 }
 
-// MatchesType defines a map of match instances
-type MatchesType map[MatchIDType]*MatchType
+// Matches defines a map of match instances
+type Matches map[MatchID]*Match
+
+// PlayerMatchRankType defines the type that
+// represents a player in a match, including
+// their number of kills and deaths
+type PlayerMatchRankType struct {
+	PlayerID   PlayerIDType
+	KillCount  int
+	DeathCount int
+}
+
+// PlayerMatchRanksType defines a map where each player's
+// rank is identified by that player's id
+type PlayerMatchRanksType map[PlayerIDType]*PlayerMatchRankType
 
 // AddPlayer adds a player into the match. True is returned
 // upon successful add, false is returned in case the
 // player is already present in the match
-func (match *MatchType) AddPlayer(player *PlayerType) bool {
-	if _, present := match.Players[player.PlayerID]; present {
+func (match *Match) AddPlayer(playerID PlayerIDType) bool {
+	if _, present := match.PlayerRanks[playerID]; present {
 		// Player already present
 		return false
 	}
 
-	match.Players[player.PlayerID] = player
+	match.PlayerRanks[playerID] = &PlayerMatchRankType{PlayerID: playerID}
 	return true
 }
 
@@ -48,30 +60,34 @@ func (match *MatchType) AddPlayer(player *PlayerType) bool {
 // ID from the match. True is returned upon successful
 // removal, false is returned in case the player
 // is not present in the match
-func (match *MatchType) RemovePlayer(playerID PlayerIDType) bool {
-	if _, present := match.Players[playerID]; !present {
+func (match *Match) RemovePlayer(playerID PlayerIDType) bool {
+	if _, present := match.PlayerRanks[playerID]; !present {
 		// Player not participating in the match
 		return false
 	}
 
-	delete(match.Players, playerID)
+	delete(match.PlayerRanks, playerID)
 	return true
 }
 
 // Generates a random match ID
-func generateMatchID() MatchIDType {
-	return MatchIDType(rand.Uint64())
+func generateMatchID() MatchID {
+	return MatchID(rand.Uint64())
 }
 
 // NewMatchNoPlayers creates a new match with no players
-func NewMatchNoPlayers(matchType MatchTypeIDType) *MatchType {
+func NewMatchNoPlayers(matchType GameTypeID) *MatchType {
 	matchID := generateMatchID()
-	return &MatchType{MatchID: matchID, MatchTypeID: matchType}
+	return &MatchType{Match: matchID, MatchTypeID: matchType}
 }
 
 // NewMatchWithPlayers creates a new match and populates
 // it with the given set of players
-func NewMatchWithPlayers(matchType MatchTypeIDType, players PlayersType) *MatchType {
+func NewMatchWithPlayers(matchType GameTypeID, playerIDs PlayerIDsType) *MatchType {
 	matchID := generateMatchID()
-	return &MatchType{MatchID: matchID, MatchTypeID: matchType, Players: players}
+	playerRanks := make(PlayerMatchRanksType, len(playerIDs))
+	for _, playerID := range playerIDs {
+		playerRanks[playerID] = &PlayerMatchRankType{PlayerID: playerID}
+	}
+	return &MatchType{MatchID: matchID, MatchTypeID: matchType, PlayerRanks: playerRanks}
 }
