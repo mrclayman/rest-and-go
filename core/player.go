@@ -24,4 +24,4 @@ type Player struct {
 
 // Players represents a map of player entities,
 // i.e. players connected to the server
-type Players map[PlayerIDType]*Player
+type Players map[PlayerID]*Player

@@ -4,6 +4,11 @@ package core
 // are accessible to HTTP request handlers to provide the
 // client with the required information
 type Core struct {
-	Database Database
+	db *Database
 	// TODO Add existing matches, leaderboards,...
+}
+
+// NewCore creates and returns a new core object
+func NewCore() *Core {
+	return &Core{db: NewDatabase()}
 }

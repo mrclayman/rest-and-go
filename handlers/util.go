@@ -1,11 +1,11 @@
-package util
+package handlers
 
 import (
+	"encoding/json"
+	"io/ioutil"
 	"net/http"
 	"path"
 	"strings"
-
-	"github.com/mrclayman/rest_api_test/errors"
 )
 
 // SplitPath splits off the first component of p, which will be cleaned of
@@ -23,15 +23,19 @@ func SplitPath(p string) (head, tail string) {
 // GetJSONFromRequest parses the body of the request
 // and transforms it into a JSON structure for further
 // processing
-func GetJSONFromRequest(request *http.Request) ([]byte, error) {
-	if request == nil {
-		return nil, errors.RequestError{Message: "Nil request"}
+func GetJSONFromRequest(req *http.Request, out *interface{}) error {
+	if req == nil {
+		return RequestError{Message: "Nil request"}
 	}
 
-	const maxSize int = 256
-	body := make([]byte, maxSize)
-	var bytesRead int
-	var err error
-	// TODO Finish once you figure out how to effectively read the
-	// entire body without knowing its size in advance
+	body, err := ioutil.ReadAll(req.Body)
+	if err != nil {
+		return RequestError{"Failed to read request body"}
+	}
+
+	if err = json.Unmarshal(body, out); err != nil {
+		return RequestError{"Invalid JSON structure in request body"}
+	}
+
+	return nil
 }

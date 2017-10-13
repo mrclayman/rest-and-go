@@ -2,7 +2,17 @@ package handlers
 
 import (
 	"net/http"
+
+	"github.com/mrclayman/rest_api_test/core"
 )
+
+// loginCredentials provides the storage
+// and format for JSON data sent in the
+// login request
+type login struct {
+	name     string
+	password string
+}
 
 // LoginHandler handles login POST requests by verifying
 // the client's credentials. Upon successful verification,
@@ -10,18 +20,16 @@ import (
 // further communication. In the case of an unsuccessful
 // authorization, the HTTP code 403/Forbidden is returned
 type LoginHandler struct {
+	db *core.Database
 }
 
 // ProcessRequest handles the login POST request
-func (handler *LoginHandler) ProcessRequest(response http.ResponseWriter, request *http.Request) {
-	if request.Method != "POST" {
-		http.Error(response, "Method not allowed", http.StatusMethodNotAllowed)
+func (h *LoginHandler) ProcessRequest(resp http.ResponseWriter, req *http.Request) {
+	if req.Method != "POST" {
+		http.Error(resp, "Method not allowed", http.StatusMethodNotAllowed)
 	}
 
-	const byteLimit := 256
-	bodyData := make([]byte, byteLimit)
-	bytesRead, err := request.Body.Read(bodyData)
-	if bytesRead == byteLimit && err != nil {
-		http.Error(response, "Request body too long", http.StatusBadRequest)
-	}
+	var cred login
+	err := GetJSONFromRequest(req, &cred)
+	id, ok := h.db.AuthenticatePlayer(login.name, login.password)
 }

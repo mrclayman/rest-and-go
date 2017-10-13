@@ -1,18 +1,18 @@
 package core
 
 // LeaderboardRecord represents one player's record
-// in a leaderboard for some match type
+// in a leaderboard for some game type
 type LeaderboardRecord struct {
-	PID         PlayerID
+	Player      PlayerID
 	TotalKills  int
 	TotalDeaths int
 }
 
 // Leaderboard defines a leaderboard, i.e.
 // a list of player records for some specific
-// match type
+// game type
 type Leaderboard []LeaderboardRecord
 
-// MatchTypeLeaderboardType defines a map of leaderboards
-// identified by a given match type id
-type MatchTypeLeaderboardType map[MatchTypeIDType]*Leaderboard
+// GameLeaderboards defines a map of leaderboards
+// identified by a given game type id
+type GameLeaderboards map[GameType]*Leaderboard

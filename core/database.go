@@ -3,7 +3,7 @@ package core
 // playerRecord is an internal representation
 // of a player record in the database
 type playerRecord struct {
-	playerID PlayerIDType
+	playerID PlayerID
 	password string
 }
 
@@ -23,14 +23,12 @@ func newPlayerTable() *playerTable {
 	}
 }
 
-// Database is a mock-up representation of
+// Database is a mock-up representation of a
 // backend database system containing records
-// about players. The type has been intentionally
-// left exported in case someone wants an empty
-// database and not a pre-filled one.
+// about players.
 type Database struct {
 	players      playerTable
-	leaderboards MatchTypeLeaderboardType
+	leaderboards GameLeaderboards
 }
 
 // NewDatabase creates a pre-filled player database
@@ -46,16 +44,19 @@ func NewDatabase() *Database {
 // internal ID is returned. In the case the player
 // name provided is not in the database, or the passwords
 // do not match, PlayerTypeID(0) and false is returned
-func (db *Database) AuthenticatePlayer(login, password string) (PlayerIDType, bool) {
+func (db *Database) AuthenticatePlayer(login, password string) (PlayerID, bool) {
 	if rec, ok := db.players[login]; !ok {
-		return PlayerIDType(0), false
+		return PlayerID(0), false
 	} else if rec.password != password {
-		return PlayerIDType(0), false
+		return PlayerID(0), false
 	} else {
 		return rec.playerID, true
 	}
 }
 
-func (db *Database) GetLeaderboardForType(id MatchTypeIDType) (*LeaderboardType, bool) {
-	return nil, db.leaderboards[id]
+// GetLeaderboardForType returns the leaderboard
+// associated with the given type
+func (db *Database) GetLeaderboardForType(id GameType) (*Leaderboard, bool) {
+	leaderboard, ok := db.leaderboards[id]
+	return leaderboard, ok
 }

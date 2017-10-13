@@ -7,52 +7,40 @@ import (
 // MatchID defines the type to represent match ID's
 type MatchID uint64
 
-// GameType is a type designating the type of a game/match
-type GameType string
-
-// DeathMatch indicates the match is of type "deathmatch"
-const DeathMatch GameType = "dm"
-
-// CaptureTheFlag indicates the match is of type "capture the flag"
-const CaptureTheFlag GameType = "ctf"
-
-// LastManStanding indicates the match is of type "last man standing"
-const LastManStanding GameType = "lms"
-
 // Match structure represents an ongoing match
 // and the participating players
 type Match struct {
 	ID    MatchID
 	Type  GameType
-	Ranks PlayerMatchRanksType
+	Ranks PlayerMatchRanks
 }
 
 // Matches defines a map of match instances
 type Matches map[MatchID]*Match
 
-// PlayerMatchRankType defines the type that
+// PlayerMatchRank defines the type that
 // represents a player in a match, including
 // their number of kills and deaths
-type PlayerMatchRankType struct {
-	PlayerID   PlayerIDType
+type PlayerMatchRank struct {
+	Player     PlayerID
 	KillCount  int
 	DeathCount int
 }
 
-// PlayerMatchRanksType defines a map where each player's
+// PlayerMatchRanks defines a map where each player's
 // rank is identified by that player's id
-type PlayerMatchRanksType map[PlayerIDType]*PlayerMatchRankType
+type PlayerMatchRanks map[PlayerID]*PlayerMatchRank
 
 // AddPlayer adds a player into the match. True is returned
 // upon successful add, false is returned in case the
 // player is already present in the match
-func (match *Match) AddPlayer(playerID PlayerIDType) bool {
-	if _, present := match.PlayerRanks[playerID]; present {
+func (m *Match) AddPlayer(player PlayerID) bool {
+	if _, present := m.Ranks[player]; present {
 		// Player already present
 		return false
 	}
 
-	match.PlayerRanks[playerID] = &PlayerMatchRankType{PlayerID: playerID}
+	m.Ranks[player] = &PlayerMatchRank{Player: player}
 	return true
 }
 
@@ -60,13 +48,13 @@ func (match *Match) AddPlayer(playerID PlayerIDType) bool {
 // ID from the match. True is returned upon successful
 // removal, false is returned in case the player
 // is not present in the match
-func (match *Match) RemovePlayer(playerID PlayerIDType) bool {
-	if _, present := match.PlayerRanks[playerID]; !present {
+func (m *Match) RemovePlayer(id PlayerID) bool {
+	if _, present := m.Ranks[id]; !present {
 		// Player not participating in the match
 		return false
 	}
 
-	delete(match.PlayerRanks, playerID)
+	delete(m.Ranks, id)
 	return true
 }
 
@@ -76,18 +64,18 @@ func generateMatchID() MatchID {
 }
 
 // NewMatchNoPlayers creates a new match with no players
-func NewMatchNoPlayers(matchType GameTypeID) *MatchType {
+func NewMatchNoPlayers(gt GameType) *Match {
 	matchID := generateMatchID()
-	return &MatchType{Match: matchID, MatchTypeID: matchType}
+	return &Match{ID: matchID, Type: gt}
 }
 
 // NewMatchWithPlayers creates a new match and populates
 // it with the given set of players
-func NewMatchWithPlayers(matchType GameTypeID, playerIDs PlayerIDsType) *MatchType {
+func NewMatchWithPlayers(gt GameType, ids PlayerIDs) *Match {
 	matchID := generateMatchID()
-	playerRanks := make(PlayerMatchRanksType, len(playerIDs))
-	for _, playerID := range playerIDs {
-		playerRanks[playerID] = &PlayerMatchRankType{PlayerID: playerID}
+	ranks := make(PlayerMatchRanks, len(ids))
+	for _, id := range ids {
+		ranks[id] = &PlayerMatchRank{Player: id}
 	}
-	return &MatchType{MatchID: matchID, MatchTypeID: matchType, PlayerRanks: playerRanks}
+	return &Match{ID: matchID, Type: gt, Ranks: ranks}
 }

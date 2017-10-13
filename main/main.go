@@ -17,10 +17,10 @@ type Application struct {
 }
 
 func main() {
-	rand.Seed(time.Unix())
+	rand.Seed(time.Now().UnixNano())
 	app := &Application{
-		core:       new(core.Core),
-		dispatcher: &handlers.MainDispatcher{core},
+		core:       core.NewCore(),
+		dispatcher: handlers.NewMainDispatcher(core),
 	}
 	http.ListenAndServe(":8000", app.dispatcher)
 }

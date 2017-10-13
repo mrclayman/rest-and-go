@@ -1,4 +1,4 @@
-package errors
+package handlers
 
 // RequestError defines an error type used
 // when the request is invalid or otherwise
