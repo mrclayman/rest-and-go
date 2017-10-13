@@ -23,9 +23,11 @@ func SplitPath(p string) (head, tail string) {
 // GetJSONFromRequest parses the body of the request
 // and transforms it into a JSON structure for further
 // processing
-func GetJSONFromRequest(req *http.Request, out *interface{}) error {
+func GetJSONFromRequest(req *http.Request, out interface{}) error {
 	if req == nil {
 		return RequestError{Message: "Nil request"}
+	} else if contType := req.Header.Get("Content-Type"); contType != "application/json" {
+		return RequestError{Message: "Wrong content type, expected 'application/json'"}
 	}
 
 	body, err := ioutil.ReadAll(req.Body)
@@ -33,9 +35,24 @@ func GetJSONFromRequest(req *http.Request, out *interface{}) error {
 		return RequestError{"Failed to read request body"}
 	}
 
-	if err = json.Unmarshal(body, out); err != nil {
+	if err = json.Unmarshal(body, &out); err != nil {
 		return RequestError{"Invalid JSON structure in request body"}
 	}
 
 	return nil
+}
+
+// WriteJSONToResponse writes a generic structure
+// into a JSON string and writes that string into
+// the HTTP response object, also defining the
+// response's Content-Type header
+func WriteJSONToResponse(resp http.ResponseWriter, in interface{}) error {
+	buf, err := json.Marshal(in)
+	if err != nil {
+		return err
+	}
+
+	resp.Header().Set("Content-Type", "application/json")
+	_, err = resp.Write(buf)
+	return err
 }

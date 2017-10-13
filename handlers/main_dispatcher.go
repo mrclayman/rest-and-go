@@ -21,14 +21,14 @@ type MainDispatcher struct {
 func NewMainDispatcher(c *core.Core) *MainDispatcher {
 	return &MainDispatcher{
 		core:  c,
-		login: LoginHandler{db: c.db},
+		login: LoginHandler{core: c},
 	}
 }
 
 // ServeHTTP is the main hub of request processing and dispatching to subhandlers
 func (dispatcher *MainDispatcher) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
 	var head string
-	head, req.URL.Path = util.SplitPath(req.URL.Path)
+	head, req.URL.Path = SplitPath(req.URL.Path)
 	switch head {
 	case "login":
 		dispatcher.login.ProcessRequest(resp, req)

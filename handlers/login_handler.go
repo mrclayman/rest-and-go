@@ -6,12 +6,12 @@ import (
 	"github.com/mrclayman/rest_api_test/core"
 )
 
-// loginCredentials provides the storage
+// login provides the storage
 // and format for JSON data sent in the
 // login request
 type login struct {
-	name     string
-	password string
+	Name     string `json:"name"`
+	Password string `json:"password"`
 }
 
 // LoginHandler handles login POST requests by verifying
@@ -20,16 +20,36 @@ type login struct {
 // further communication. In the case of an unsuccessful
 // authorization, the HTTP code 403/Forbidden is returned
 type LoginHandler struct {
-	db *core.Database
+	core *core.Core
 }
 
 // ProcessRequest handles the login POST request
 func (h *LoginHandler) ProcessRequest(resp http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {
 		http.Error(resp, "Method not allowed", http.StatusMethodNotAllowed)
+		return
 	}
 
-	var cred login
-	err := GetJSONFromRequest(req, &cred)
-	id, ok := h.db.AuthenticatePlayer(login.name, login.password)
+	// Parse the request body
+	var credent login
+	err := GetJSONFromRequest(req, &credent)
+	if err != nil {
+		http.Error(resp, err.(RequestError).Message, http.StatusBadRequest)
+		return
+	}
+
+	// Authenticate
+	id, ok := h.core.AuthenticatePlayer(credent.Name, credent.Password)
+	if !ok {
+		http.Error(resp, "Failed to authenticate user", http.StatusForbidden)
+		return
+	}
+
+	// Success, generate a token for the player and add them
+	token := core.GenerateAuthenticationToken()
+	h.core.AddConnected(id, credent.Name, token)
+
+	// Dispatch the response to the player
+	respData := map[string]interface{}{"id": id, "token": token}
+	WriteJSONToResponse(resp, respData)
 }

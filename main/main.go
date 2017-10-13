@@ -12,14 +12,15 @@ import (
 // Application structure binds together all the important
 // parts of the server
 type Application struct {
-	core       *core.Core
+	appCore    *core.Core
 	dispatcher *handlers.MainDispatcher
 }
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
+	core := core.NewCore()
 	app := &Application{
-		core:       core.NewCore(),
+		appCore:    core,
 		dispatcher: handlers.NewMainDispatcher(core),
 	}
 	http.ListenAndServe(":8000", app.dispatcher)

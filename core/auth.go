@@ -7,7 +7,7 @@ import (
 
 // GenerateAuthenticationToken generates a random number and
 // casts it to a string
-func GenerateAuthenticationToken() string {
+func GenerateAuthenticationToken() AuthToken {
 	token := rand.Uint64()
-	return strconv.FormatUint(token, 10)
+	return AuthToken(strconv.FormatUint(token, 10))
 }
