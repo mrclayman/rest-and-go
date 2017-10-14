@@ -11,3 +11,6 @@ const CaptureTheFlag GameType = "ctf"
 
 // LastManStanding indicates the match is of type "last man standing"
 const LastManStanding GameType = "lms"
+
+// Duel indicates the match is of type "duel" (1 on 1)
+const Duel GameType = "duel"

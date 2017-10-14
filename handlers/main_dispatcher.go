@@ -11,6 +11,7 @@ import (
 type MainDispatcher struct {
 	core  *core.Core
 	login LoginHandler
+	mlist MatchlistHandler
 	// TODO Add handlers for other client requests
 	/*lboardHandler *LeaderboardHandler
 	matchListHandler  *MatchListHandler */
@@ -22,6 +23,7 @@ func NewMainDispatcher(c *core.Core) *MainDispatcher {
 	return &MainDispatcher{
 		core:  c,
 		login: LoginHandler{core: c},
+		mlist: MatchlistHandler{core: c},
 	}
 }
 
@@ -32,7 +34,8 @@ func (dispatcher *MainDispatcher) ServeHTTP(resp http.ResponseWriter, req *http.
 	switch head {
 	case "login":
 		dispatcher.login.ProcessRequest(resp, req)
-		return
+	case "matches":
+		dispatcher.mlist.ProcessRequest(resp, req)
 	default:
 		http.Error(resp, "Resource not found", http.StatusNotFound)
 	}

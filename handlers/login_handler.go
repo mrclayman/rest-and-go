@@ -9,7 +9,7 @@ import (
 // login provides the storage
 // and format for JSON data sent in the
 // login request
-type login struct {
+type loginRequest struct {
 	Name     string `json:"name"`
 	Password string `json:"password"`
 }
@@ -31,7 +31,7 @@ func (h *LoginHandler) ProcessRequest(resp http.ResponseWriter, req *http.Reques
 	}
 
 	// Parse the request body
-	var credent login
+	var credent loginRequest
 	err := GetJSONFromRequest(req, &credent)
 	if err != nil {
 		http.Error(resp, err.(RequestError).Message, http.StatusBadRequest)
@@ -51,5 +51,6 @@ func (h *LoginHandler) ProcessRequest(resp http.ResponseWriter, req *http.Reques
 
 	// Dispatch the response to the player
 	respData := map[string]interface{}{"id": id, "token": token}
+	// TODO Should I check that the response has been serialized correctly?
 	WriteJSONToResponse(resp, respData)
 }

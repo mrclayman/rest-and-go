@@ -6,6 +6,8 @@ import (
 	"net/http"
 	"path"
 	"strings"
+
+	"github.com/mrclayman/rest_api_test/core"
 )
 
 // SplitPath splits off the first component of p, which will be cleaned of
@@ -55,4 +57,45 @@ func WriteJSONToResponse(resp http.ResponseWriter, in interface{}) error {
 	resp.Header().Set("Content-Type", "application/json")
 	_, err = resp.Write(buf)
 	return err
+}
+
+// getSingleValueFromGetArgs obtains a single value from
+// the request's GET arguments. It is expected that exactly
+// one value is present in the arguments and that the GET
+// arguments have been parsed beforehand using ParseForm()
+func getSingleValueFromGetArgs(req *http.Request, name string) (string, bool) {
+	value := req.Form.Get(name)
+	var ok bool
+	if len(value) > 0 {
+		ok = true
+	}
+
+	return value, ok
+}
+
+// GetPlayerDataFromGetArgs reads the player's identification
+// data from a GET request. The method does not check that the
+// request is indeed a GET request and it also assumes the GET
+// arguments have already been parsed using a call to ParseForm()
+func GetPlayerDataFromGetArgs(req *http.Request) (core.PlayerID, core.AuthToken, error) {
+	playerID := core.InvalidPlayerID
+	token := core.InvalidAuthToken
+	var err error
+
+	if strPlayerID, ok := getSingleValueFromGetArgs(req, "id"); !ok {
+		return core.InvalidPlayerID, core.InvalidAuthToken,
+			RequestError{"Failed to obtain player ID from request"}
+	} else if playerID, err = core.StringToPlayerID(strPlayerID); err != nil {
+		return core.InvalidPlayerID, core.InvalidAuthToken,
+			RequestError{"Failed to convert argument to player ID"}
+	}
+
+	if strToken, ok := getSingleValueFromGetArgs(req, "token"); !ok {
+		return core.InvalidPlayerID, core.InvalidAuthToken,
+			RequestError{"Failed to obtain player's authentication token from request"}
+	} else {
+		token = core.StringToAuthToken(strToken)
+	}
+
+	return playerID, token, nil
 }

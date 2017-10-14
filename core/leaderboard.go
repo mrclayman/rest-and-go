@@ -1,11 +1,11 @@
 package core
 
 // LeaderboardRecord represents one player's record
-// in a leaderboard for some game type
+// in a leaderboard for some game type.
 type LeaderboardRecord struct {
-	Player      PlayerID
-	TotalKills  int
-	TotalDeaths int
+	Player PlayerID
+	Kills  uint
+	Deaths uint
 }
 
 // Leaderboard defines a leaderboard, i.e.
