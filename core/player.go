@@ -20,6 +20,12 @@ func StringToPlayerID(strID string) (PlayerID, error) {
 	return PlayerID(id), err
 }
 
+// PlayerIDToString converts a player's id
+// into its string equivalent
+func PlayerIDToString(id PlayerID) string {
+	return strconv.Itoa(int(id))
+}
+
 // Player structure is an internal representation of
 // a connected client that has been successfully
 // authenticated

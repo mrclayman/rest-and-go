@@ -23,14 +23,19 @@ func (h *MatchlistHandler) ProcessRequest(resp http.ResponseWriter, req *http.Re
 	// GET parameters need to be parsed on-request
 	req.ParseForm()
 
+	// Authenticate user
 	playerID, token, err := GetPlayerDataFromGetArgs(req)
 	if err != nil {
 		http.Error(resp, err.Error(), http.StatusBadRequest)
+		return
 	} else if !h.core.IsLoggedIn(playerID, token) {
 		http.Error(resp, "Could not authenticate player's token", http.StatusUnauthorized)
 		return
 	}
 
-	matchlist := h.core.GetMatchlist()
+	matchlist, err := h.core.GetMatchlist()
+	if err != nil {
+		http.Error(resp, err.Error(), http.StatusInternalServerError)
+	}
 	WriteJSONToResponse(resp, matchlist)
 }

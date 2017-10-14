@@ -9,21 +9,21 @@ import (
 // MainDispatcher aggregates all request handlers
 // and distributes to them the incoming requests
 type MainDispatcher struct {
-	core  *core.Core
-	login LoginHandler
-	mlist MatchlistHandler
-	// TODO Add handlers for other client requests
-	/*lboardHandler *LeaderboardHandler
-	matchListHandler  *MatchListHandler */
+	core   *core.Core
+	login  LoginHandler
+	mlist  MatchlistHandler
+	lboard LeaderboardHandler
+	// TODO Add join handler
 }
 
 // NewMainDispatcher creates a new instance of the
 // main HTTP request dispatcher structure
 func NewMainDispatcher(c *core.Core) *MainDispatcher {
 	return &MainDispatcher{
-		core:  c,
-		login: LoginHandler{core: c},
-		mlist: MatchlistHandler{core: c},
+		core:   c,
+		login:  LoginHandler{core: c},
+		mlist:  MatchlistHandler{core: c},
+		lboard: LeaderboardHandler{core: c},
 	}
 }
 
@@ -36,6 +36,8 @@ func (dispatcher *MainDispatcher) ServeHTTP(resp http.ResponseWriter, req *http.
 		dispatcher.login.ProcessRequest(resp, req)
 	case "matches":
 		dispatcher.mlist.ProcessRequest(resp, req)
+	case "leaderboards":
+		dispatcher.lboard.ProcessRequest(resp, req)
 	default:
 		http.Error(resp, "Resource not found", http.StatusNotFound)
 	}
