@@ -27,3 +27,19 @@ func GenerateAuthenticationToken() AuthToken {
 func StringToAuthToken(str string) AuthToken {
 	return AuthToken(str)
 }
+
+// WebSockToken defines the type for player's
+// WebSock token used to identify a player
+// participating in an active match
+type WebSockToken string
+
+// InvalidWebSockToken defines an invalid
+// value for a WebSock token
+const InvalidWebSockToken WebSockToken = ""
+
+// GenerateWebSockToken generates a new
+// WebSock token value
+func GenerateWebSockToken() WebSockToken {
+	token := rand.Uint64()
+	return WebSockToken(strconv.FormatUint(token, 10))
+}

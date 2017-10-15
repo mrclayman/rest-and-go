@@ -42,7 +42,10 @@ func (h *LeaderboardHandler) ProcessRequest(resp http.ResponseWriter, req *http.
 		http.Error(resp, "Invalid game type specified", http.StatusBadRequest)
 		return
 	}
-	leaderboard, err := h.core.GetLeaderboard(gameType)
+
+	// Obtain the desired leaderboard information and
+	// serialize it into a JSON structure for dispatch
+	leaderboard, err := h.core.GetLeaderboardForJSON(gameType)
 	if err != nil {
 		http.Error(resp, "Failed to obtain leaderboard", http.StatusInternalServerError)
 	}

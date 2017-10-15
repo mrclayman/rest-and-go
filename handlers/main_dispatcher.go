@@ -13,6 +13,7 @@ type MainDispatcher struct {
 	login  LoginHandler
 	mlist  MatchlistHandler
 	lboard LeaderboardHandler
+	mjoin  MatchJoinHandler
 	// TODO Add join handler
 }
 
@@ -24,6 +25,7 @@ func NewMainDispatcher(c *core.Core) *MainDispatcher {
 		login:  LoginHandler{core: c},
 		mlist:  MatchlistHandler{core: c},
 		lboard: LeaderboardHandler{core: c},
+		mjoin:  MatchJoinHandler{core: c},
 	}
 }
 
@@ -38,6 +40,8 @@ func (dispatcher *MainDispatcher) ServeHTTP(resp http.ResponseWriter, req *http.
 		dispatcher.mlist.ProcessRequest(resp, req)
 	case "leaderboards":
 		dispatcher.lboard.ProcessRequest(resp, req)
+	case "match":
+		dispatcher.mjoin.ProcessRequest(resp, req)
 	default:
 		http.Error(resp, "Resource not found", http.StatusNotFound)
 	}

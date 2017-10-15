@@ -51,13 +51,13 @@ func (c *Core) GetPlayerNick(id PlayerID) (string, bool) {
 	return nick, ok
 }
 
-// GetMatchlist returns a transformed matchlist
+// GetMatchlistForJSON returns a transformed matchlist
 // suitable for presentation to the client. I could
 // just pass the whole structure to the JSON marshaller
 // but I wanted to present the player with the other
 // players' nicknames (those are not stored along with the
 // players' match ranks) and not just their id's
-func (c *Core) GetMatchlist() ([]map[string]interface{}, error) {
+func (c *Core) GetMatchlistForJSON() ([]map[string]interface{}, error) {
 	retval := make([]map[string]interface{}, len(c.matches))
 	i := 0
 	for _, match := range c.matches {
@@ -89,9 +89,9 @@ func (c *Core) GetMatchlist() ([]map[string]interface{}, error) {
 	return retval, nil
 }
 
-// GetLeaderboard returns a transformed leaderboard
+// GetLeaderboardForJSON returns a transformed leaderboard
 // associated with the given game type.
-func (c *Core) GetLeaderboard(gt GameType) ([]map[string]interface{}, error) {
+func (c *Core) GetLeaderboardForJSON(gt GameType) ([]map[string]interface{}, error) {
 	board, ok := c.db.GetLeaderboard(gt)
 	if !ok {
 		return nil, IntegrityError{"Leaderboard has not been created for type " + GameTypeToString(gt)}
@@ -114,4 +114,28 @@ func (c *Core) GetLeaderboard(gt GameType) ([]map[string]interface{}, error) {
 		retval[i] = item
 	}
 	return retval, nil
+}
+
+// JoinMatch lets a player with id 'pid' join a match 'mid',
+// or create a new match of game type 'gt' if mid = InvalidMatchID.
+// If 'mid' identifies a non-existent match, MatchNotFoundError
+// is returned
+func (c *Core) JoinMatch(mid MatchID, pid PlayerID, gt GameType) (MatchID, error) {
+	var match *Match
+	var ok bool
+
+	if mid != InvalidMatchID {
+		match, ok = c.matches[mid]
+		if !ok {
+			return InvalidMatchID, MatchNotFoundError{mid}
+		}
+
+		match.Add(pid)
+	} else {
+		ids := PlayerIDs{pid}
+		match = NewMatchWithPlayers(gt, ids)
+		c.matches[match.ID] = match
+	}
+
+	return match.ID, nil
 }

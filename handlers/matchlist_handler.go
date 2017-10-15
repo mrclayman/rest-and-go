@@ -33,7 +33,7 @@ func (h *MatchlistHandler) ProcessRequest(resp http.ResponseWriter, req *http.Re
 		return
 	}
 
-	matchlist, err := h.core.GetMatchlist()
+	matchlist, err := h.core.GetMatchlistForJSON()
 	if err != nil {
 		http.Error(resp, err.Error(), http.StatusInternalServerError)
 	}
