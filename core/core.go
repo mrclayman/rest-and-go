@@ -127,11 +127,15 @@ func (c *Core) JoinMatch(mid MatchID, pid PlayerID, gt GameType) (MatchID, error
 	if mid != InvalidMatchID {
 		match, ok = c.matches[mid]
 		if !ok {
-			return InvalidMatchID, MatchNotFoundError{mid}
+			return InvalidMatchID, InvalidArgumentError{"Match not found:" + MatchIDToString(mid)}
 		}
 
 		match.Add(pid)
 	} else {
+		if gt == InvalidGameType {
+			return InvalidMatchID, InvalidArgumentError{"Game type specification required if no match ID defined"}
+		}
+
 		ids := PlayerIDs{pid}
 		match = NewMatchWithPlayers(gt, ids)
 		c.matches[match.ID] = match
