@@ -12,6 +12,12 @@ type LeaderboardHandler struct {
 	core *core.Core
 }
 
+// NewLeaderboardHandler returns a pointer
+// to a new leaderboard handler instance
+func NewLeaderboardHandler(c *core.Core) *LeaderboardHandler {
+	return &LeaderboardHandler{core: c}
+}
+
 // ProcessRequest process the client's request and prepares
 // an appropriate response
 func (h *LeaderboardHandler) ProcessRequest(resp http.ResponseWriter, req *http.Request) {

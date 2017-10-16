@@ -23,6 +23,12 @@ type LoginHandler struct {
 	core *core.Core
 }
 
+// NewLoginHandler creates a pointer to a new
+// instance of the login request handler structure
+func NewLoginHandler(c *core.Core) *LoginHandler {
+	return &LoginHandler{core: c}
+}
+
 // ProcessRequest handles the login POST request
 func (h *LoginHandler) ProcessRequest(resp http.ResponseWriter, req *http.Request) {
 	if req.Method != "POST" {

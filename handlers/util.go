@@ -59,11 +59,11 @@ func WriteJSONToResponse(resp http.ResponseWriter, in interface{}) error {
 	return err
 }
 
-// getSingleValueFromGetArgs obtains a single value from
+// getValueFromGET obtains a single value from
 // the request's GET arguments. It is expected that exactly
 // one value is present in the arguments and that the GET
 // arguments have been parsed beforehand using ParseForm()
-func getSingleValueFromGetArgs(req *http.Request, name string) (string, bool) {
+func getValueFromGET(req *http.Request, name string) (string, bool) {
 	value := req.Form.Get(name)
 	var ok bool
 	if len(value) > 0 {
@@ -82,7 +82,7 @@ func GetPlayerDataFromGetArgs(req *http.Request) (core.PlayerID, core.AuthToken,
 	token := core.InvalidAuthToken
 	var err error
 
-	if strPlayerID, ok := getSingleValueFromGetArgs(req, "id"); !ok {
+	if strPlayerID, ok := getValueFromGET(req, "id"); !ok {
 		return core.InvalidPlayerID, core.InvalidAuthToken,
 			RequestError{"Failed to obtain player ID from request"}
 	} else if playerID, err = core.StringToPlayerID(strPlayerID); err != nil {
@@ -90,7 +90,7 @@ func GetPlayerDataFromGetArgs(req *http.Request) (core.PlayerID, core.AuthToken,
 			RequestError{"Failed to convert argument to player ID"}
 	}
 
-	if strToken, ok := getSingleValueFromGetArgs(req, "token"); !ok {
+	if strToken, ok := getValueFromGET(req, "token"); !ok {
 		return core.InvalidPlayerID, core.InvalidAuthToken,
 			RequestError{"Failed to obtain player's authentication token from request"}
 	} else {

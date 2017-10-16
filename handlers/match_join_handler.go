@@ -23,6 +23,12 @@ type MatchJoinHandler struct {
 	core *core.Core
 }
 
+// NewMatchJoinHandler returns a pointer to a new
+// instance of the match join request handler
+func NewMatchJoinHandler(c *core.Core) *MatchJoinHandler {
+	return &MatchJoinHandler{core: c}
+}
+
 // ProcessRequest processes the user's request
 // and generates an appropriate response
 func (h *MatchJoinHandler) ProcessRequest(resp http.ResponseWriter, req *http.Request) {
@@ -31,14 +37,7 @@ func (h *MatchJoinHandler) ProcessRequest(resp http.ResponseWriter, req *http.Re
 		return
 	}
 
-	// Joining a match requires a reference to a particular
-	// resource, check the URL to see if it is really there
-	var action string
-	action, req.URL.Path = SplitPath(req.URL.Path)
-	if action != "join" {
-		http.Error(resp, "Resource not found", http.StatusNotFound)
-		return
-	}
+
 
 	// Parse and process the request
 	var join joinRequest

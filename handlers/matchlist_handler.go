@@ -12,6 +12,12 @@ type MatchlistHandler struct {
 	core *core.Core
 }
 
+// NewMatchlistHandler returns a pointer to a new
+// matchlist handler instance
+func NewMatchlistHandler(c *core.Core) *MatchlistHandler {
+	return &MatchlistHandler{core: c}
+}
+
 // ProcessRequest processes the incoming request and creates
 // an appropriate response
 func (h *MatchlistHandler) ProcessRequest(resp http.ResponseWriter, req *http.Request) {
