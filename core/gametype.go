@@ -3,20 +3,22 @@ package core
 // GameType is a type designating the type of a game/match
 type GameType string
 
-// DeathMatch indicates the match is of type "deathmatch"
-const DeathMatch GameType = "dm"
+const (
+	// DeathMatch indicates the match is of type "deathmatch"
+	DeathMatch GameType = "dm"
 
-// CaptureTheFlag indicates the match is of type "capture the flag"
-const CaptureTheFlag GameType = "ctf"
+	// CaptureTheFlag indicates the match is of type "capture the flag"
+	CaptureTheFlag GameType = "ctf"
 
-// LastManStanding indicates the match is of type "last man standing"
-const LastManStanding GameType = "lms"
+	// LastManStanding indicates the match is of type "last man standing"
+	LastManStanding GameType = "lms"
 
-// Duel indicates the match is of type "duel" (1 on 1)
-const Duel GameType = "duel"
+	// Duel indicates the match is of type "duel" (1 on 1)
+	Duel GameType = "duel"
 
-// InvalidGameType defines an invalid value for the GameType type
-const InvalidGameType = ""
+	// InvalidGameType defines an invalid value for the GameType type
+	InvalidGameType = ""
+)
 
 // IsValidGameType checks that the value of 'gt'
 // is indeed a valid game type designator

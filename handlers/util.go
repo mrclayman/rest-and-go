@@ -7,7 +7,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/mrclayman/rest_api_test/core"
+	"github.com/mrclayman/rest-and-go/core"
 )
 
 // SplitPath splits off the first component of p, which will be cleaned of
@@ -36,8 +36,12 @@ func GetJSONFromRequest(req *http.Request, out interface{}) error {
 	if err != nil {
 		return RequestError{"Failed to read request body"}
 	}
+	return GetJSONFromBytes(body, out)
+}
 
-	if err = json.Unmarshal(body, &out); err != nil {
+// GetJSONFromBytes unmarshals JSON data from a byte slice
+func GetJSONFromBytes(bytes []byte, out interface{}) error {
+	if err := json.Unmarshal(bytes, &out); err != nil {
 		return RequestError{"Invalid JSON structure in request body"}
 	}
 
@@ -73,11 +77,11 @@ func getValueFromGET(req *http.Request, name string) (string, bool) {
 	return value, ok
 }
 
-// GetPlayerDataFromGetArgs reads the player's identification
+// GetPlayerDataFromGET reads the player's identification
 // data from a GET request. The method does not check that the
 // request is indeed a GET request and it also assumes the GET
 // arguments have already been parsed using a call to ParseForm()
-func GetPlayerDataFromGetArgs(req *http.Request) (core.PlayerID, core.AuthToken, error) {
+func GetPlayerDataFromGET(req *http.Request) (core.PlayerID, core.AuthToken, error) {
 	playerID := core.InvalidPlayerID
 	token := core.InvalidAuthToken
 	var err error

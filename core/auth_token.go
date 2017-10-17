@@ -28,18 +28,17 @@ func StringToAuthToken(str string) AuthToken {
 	return AuthToken(str)
 }
 
-// WebSockToken defines the type for player's
-// WebSock token used to identify a player
-// participating in an active match
-type WebSockToken string
+// GetRandomString returns a random string
+// of the given length comprised of alphanumeric
+// characters
+func GetRandomString(length int) string {
+	const chars = "ABCDE0FGHIJ1KLMNO2PQRST3UVWXY4Zabcd5efghi6jklmn7opqrs8tuvwx9yz"
+	const charCount = int64(len(chars))
+	retval := make([]byte, length)
 
-// InvalidWebSockToken defines an invalid
-// value for a WebSock token
-const InvalidWebSockToken WebSockToken = ""
+	for i := 0; i < length; i++ {
+		retval[i] = chars[rand.Int63()%charCount]
+	}
 
-// GenerateWebSockToken generates a new
-// WebSock token value
-func GenerateWebSockToken() WebSockToken {
-	token := rand.Uint64()
-	return WebSockToken(strconv.FormatUint(token, 10))
+	return string(retval)
 }

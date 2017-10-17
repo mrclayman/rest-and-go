@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/mrclayman/rest_api_test/core"
+	"github.com/mrclayman/rest-and-go/core"
 )
 
 // joinRequest aggregates all the information
@@ -37,8 +37,6 @@ func (h *MatchJoinHandler) ProcessRequest(resp http.ResponseWriter, req *http.Re
 		return
 	}
 
-
-
 	// Parse and process the request
 	var join joinRequest
 	err := GetJSONFromRequest(req, &join)
@@ -48,14 +46,16 @@ func (h *MatchJoinHandler) ProcessRequest(resp http.ResponseWriter, req *http.Re
 	} else if !h.core.IsLoggedIn(join.PID, join.Token) {
 		http.Error(resp, "Could not authenticate player's token", http.StatusUnauthorized)
 		return
-	} else if join.MID, err = h.core.JoinMatch(join.MID, join.PID, join.GType); err != nil {
+	}
+
+	// Generate WebSocket token and add the player
+	// to the match, or create a new match if necessary
+	wsToken := core.GenerateWebSocketToken()
+	if join.MID, err = h.core.JoinMatch(join.MID, join.PID, wsToken, join.GType); err != nil {
 		http.Error(resp, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// Generate the necessary WebSock token
-	// and dispatch the response to the player
-	wsToken := core.GenerateWebSockToken()
 	output := map[string]interface{}{
 		"match_id": join.MID,
 		"ws_token": wsToken,

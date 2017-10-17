@@ -30,10 +30,17 @@ func PlayerIDToString(id PlayerID) string {
 // a connected client that has been successfully
 // authenticated
 type Player struct {
-	ID    PlayerID
-	Nick  string
-	Token AuthToken
+	ID   PlayerID
+	Nick string
 }
+
+// PlayerAuthTokens aggregates authentication
+// tokens of connected players
+type PlayerAuthTokens map[PlayerID]AuthToken
+
+// PlayerWSTokens aggregates WebSocket tokens
+// of players participating in matches
+type PlayerWSTokens map[PlayerID]WebSocketToken
 
 // Players represents a map of player entities,
 // i.e. players connected to the server

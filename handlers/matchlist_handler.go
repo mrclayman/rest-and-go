@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/mrclayman/rest_api_test/core"
+	"github.com/mrclayman/rest-and-go/core"
 )
 
 // MatchlistHandler handles requests regarding listing
@@ -30,7 +30,7 @@ func (h *MatchlistHandler) ProcessRequest(resp http.ResponseWriter, req *http.Re
 	req.ParseForm()
 
 	// Authenticate user
-	playerID, token, err := GetPlayerDataFromGetArgs(req)
+	playerID, token, err := GetPlayerDataFromGET(req)
 	if err != nil {
 		http.Error(resp, err.Error(), http.StatusBadRequest)
 		return

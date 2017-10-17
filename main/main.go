@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/mrclayman/rest_api_test/core"
-	"github.com/mrclayman/rest_api_test/handlers"
+	"github.com/mrclayman/rest-and-go/core"
+	"github.com/mrclayman/rest-and-go/handlers"
 )
 
 // Application structure binds together all the important

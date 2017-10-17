@@ -6,18 +6,22 @@ import "sort"
 // are accessible to HTTP request handlers to provide the
 // client with the required information
 type Core struct {
-	db      *Database
-	players Players
-	matches Matches
+	db               *Database
+	players          Players
+	matches          Matches
+	playerAuthTokens PlayerAuthTokens
+	playerWSTokens   PlayerWSTokens
 }
 
 // NewCore creates and returns a new core object
 // with pre-filled member structures
 func NewCore() *Core {
 	return &Core{
-		db:      newDatabase(),             // Pre-fill the database
-		players: newConnectedPlayerTable(), // Pre-fill the connected player table
-		matches: newMatchTable(),           // Pre-fill the match list
+		db:               newDatabase(),                  // Pre-fill the database
+		players:          newConnectedPlayerTable(),      // Pre-fill the connected player table
+		matches:          newMatchTable(),                // Pre-fill the match list
+		playerAuthTokens: newConnectedPlayerTokenTable(), // Pre-fill the player auth token table
+		playerWSTokens:   newPlayerInMatchTokenTable(),   // Pre-fill the player-in-match token table
 	}
 }
 
@@ -31,15 +35,24 @@ func (c *Core) AuthenticatePlayer(name, pass string) (PlayerID, bool) {
 
 // AddConnected adds a newly connected player to the system
 func (c *Core) AddConnected(id PlayerID, nick string, token AuthToken) {
-	c.players[id] = &Player{ID: id, Nick: nick, Token: token}
+	c.players[id] = &Player{ID: id, Nick: nick}
+	c.playerAuthTokens[id] = token
 }
 
 // IsLoggedIn checks that a player with the given id
 // is active in the system and provided the correct
 // authentication token
 func (c *Core) IsLoggedIn(id PlayerID, token AuthToken) bool {
-	player, ok := c.players[id]
-	return ok && player.Token == token
+	playerToken, ok := c.playerAuthTokens[id]
+	return ok && playerToken == token
+}
+
+// IsInMatch checks that a player is in match by
+// comparing the provided WebSocket token with
+// the one stored in the system
+func (c *Core) IsInMatch(id PlayerID, token WebSocketToken) bool {
+	playerToken, ok := c.playerWSTokens[id]
+	return ok && playerToken == token
 }
 
 // GetPlayerNick returns the nickname for the player
@@ -120,11 +133,12 @@ func (c *Core) GetLeaderboardForJSON(gt GameType) ([]map[string]interface{}, err
 // or create a new match of game type 'gt' if mid = InvalidMatchID.
 // If 'mid' identifies a non-existent match, MatchNotFoundError
 // is returned
-func (c *Core) JoinMatch(mid MatchID, pid PlayerID, gt GameType) (MatchID, error) {
+func (c *Core) JoinMatch(mid MatchID, pid PlayerID, token WebSocketToken, gt GameType) (MatchID, error) {
 	var match *Match
 	var ok bool
 
 	if mid != InvalidMatchID {
+		// The player wants to join an existing match
 		match, ok = c.matches[mid]
 		if !ok {
 			return InvalidMatchID, InvalidArgumentError{"Match not found:" + MatchIDToString(mid)}
@@ -132,6 +146,7 @@ func (c *Core) JoinMatch(mid MatchID, pid PlayerID, gt GameType) (MatchID, error
 
 		match.Add(pid)
 	} else {
+		// The player wants to create a new match
 		if gt == InvalidGameType {
 			return InvalidMatchID, InvalidArgumentError{"Game type specification required if no match ID defined"}
 		}
@@ -141,5 +156,25 @@ func (c *Core) JoinMatch(mid MatchID, pid PlayerID, gt GameType) (MatchID, error
 		c.matches[match.ID] = match
 	}
 
+	c.playerWSTokens[pid] = token
+
 	return match.ID, nil
+}
+
+// QuitMatch removes a player from the given match.
+// If the match turns out to be empty, it is removed
+// from the match set
+func (c *Core) QuitMatch(mid MatchID, pid PlayerID) error {
+
+	match, ok := c.matches[mid]
+	if !ok {
+		return InvalidArgumentError{"Invalid match ID " + MatchIDToString(mid)}
+	}
+	delete(match.Ranks, pid)
+	if len(match.Ranks) == 0 {
+		delete(c.matches, mid)
+	}
+	delete(c.playerWSTokens, pid)
+
+	return nil
 }

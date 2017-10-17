@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/mrclayman/rest_api_test/core"
+	"github.com/mrclayman/rest-and-go/core"
 )
 
 // MatchHandler structure represents a handler
