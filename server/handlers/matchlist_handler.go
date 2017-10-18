@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/mrclayman/rest-and-go/core"
+	"github.com/mrclayman/rest-and-go/server/core"
 )
 
 // MatchlistHandler handles requests regarding listing

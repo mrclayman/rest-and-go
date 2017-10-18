@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/websocket"
-	"github.com/mrclayman/rest-and-go/core"
+	"github.com/mrclayman/rest-and-go/server/core"
 )
 
 // MatchRoomHandler handles WebSocket requests

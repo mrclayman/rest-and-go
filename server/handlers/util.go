@@ -7,7 +7,7 @@ import (
 	"path"
 	"strings"
 
-	"github.com/mrclayman/rest-and-go/core"
+	"github.com/mrclayman/rest-and-go/server/core"
 )
 
 // SplitPath splits off the first component of p, which will be cleaned of

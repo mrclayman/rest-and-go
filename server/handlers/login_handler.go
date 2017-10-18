@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/mrclayman/rest-and-go/core"
+	"github.com/mrclayman/rest-and-go/server/core"
 )
 
 // login provides the storage

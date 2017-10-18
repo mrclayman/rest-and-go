@@ -1,6 +1,6 @@
 package handlers
 
-import "github.com/mrclayman/rest-and-go/core"
+import "github.com/mrclayman/rest-and-go/server/core"
 
 // MessageID identifies an incoming message on the
 // WebSocket interface
