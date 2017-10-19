@@ -14,6 +14,23 @@ const (
 	serverAddress string = "http://localhost:8000"
 )
 
+type playerRank struct {
+	PlayerID   int    `json:"player_id"`
+	PlayerName string `json:"player_name"`
+	Kills      uint   `json:"kills"`
+	Deaths     uint   `json:"deaths"`
+}
+
+type playerRanks []playerRank
+
+type match struct {
+	ID          uint64      `json:"match_id"`
+	Type        string      `json:"match_type"`
+	PlayerRanks playerRanks `json:"ranks"`
+}
+
+type matchlist []match
+
 type playerAuthData struct {
 	ID    int    `json:"id"`
 	Token string `json:"token"`
@@ -42,7 +59,7 @@ var players = []playerLogin{
 	{"Mikky", "Come|Get|Some"},
 }
 
-func processBody(resp *http.Response, out interface{}) error {
+func processResponse(resp *http.Response, out interface{}) error {
 	var respData []byte
 	var err error
 
@@ -55,7 +72,15 @@ func processBody(resp *http.Response, out interface{}) error {
 		return errors.New("Unexpected response content type")
 	}
 
-	return json.Unmarshal(respData, out)
+	fmt.Println(string(respData))
+	err = json.Unmarshal(respData, &out)
+	if err != nil {
+		fmt.Println("Failed to unmarshal data:", err.Error())
+	}
+	if ad, ok := out.(playerAuthData); ok {
+		fmt.Println(ad.ID, ad.Token)
+	}
+	return err
 }
 
 func post(client *http.Client, endpoint string, data []byte, out interface{}) error {
@@ -63,7 +88,7 @@ func post(client *http.Client, endpoint string, data []byte, out interface{}) er
 		bytes.NewReader(data))
 	if err != nil {
 		return err
-	} else if err = processBody(resp, out); err != nil {
+	} else if err = processResponse(resp, out); err != nil {
 		return err
 	}
 
@@ -71,10 +96,12 @@ func post(client *http.Client, endpoint string, data []byte, out interface{}) er
 }
 
 func get(client *http.Client, endpoint string, auth playerAuthData, out interface{}) error {
+	url := serverAddress + endpoint + "?" + auth.ToGet()
+	fmt.Println("Querying server for matches using URL:", url)
 	resp, err := client.Get(serverAddress + endpoint + "?" + auth.ToGet())
 	if err != nil {
 		return err
-	} else if err = processBody(resp, out); err != nil {
+	} else if err = processResponse(resp, out); err != nil {
 		return err
 	}
 
@@ -102,6 +129,7 @@ func printLoginQuery() playerLogin {
 func login(client *http.Client) (playerLogin, playerAuthData, error) {
 	player := printLoginQuery()
 	loginJSON, err := json.Marshal(player)
+
 	if err != nil {
 		return playerLogin{}, playerAuthData{}, err
 	}
@@ -111,6 +139,8 @@ func login(client *http.Client) (playerLogin, playerAuthData, error) {
 	if err != nil {
 		return playerLogin{}, playerAuthData{}, err
 	}
+
+	fmt.Println("User auth data:", authData.ID, authData.Token)
 
 	return player, authData, nil
 }
@@ -136,13 +166,17 @@ func printMainMenu() int {
 }
 
 func listMatches(client *http.Client, authData playerAuthData) error {
-	var matches map[string]interface{}
+	var matches matchlist
 
 	if err := get(client, "/matches", authData, matches); err != nil {
 		return err
 	}
 
-	// TODO List the contents of the matchlist
+	fmt.Println("Received", len(matches), "matches")
+	fmt.Println("---------------------------------------------")
+	for _, match := range matches {
+		fmt.Println("Game type:", match.Type)
+	}
 	return nil
 }
 
@@ -159,6 +193,7 @@ func main() {
 
 	switch choice {
 	case 1:
+		fmt.Println("Listing matches")
 		listMatches(&client, authData)
 	default:
 	}
