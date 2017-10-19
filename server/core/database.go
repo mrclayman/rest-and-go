@@ -41,14 +41,16 @@ func newDatabase() *Database {
 // internal ID is returned. In the case the player
 // name provided is not in the database, or the passwords
 // do not match, PlayerTypeID(0) and false is returned
-func (db *Database) AuthenticatePlayer(login, password string) (PlayerID, bool) {
-	if rec, ok := db.players[login]; !ok {
-		return PlayerID(0), false
+func (db *Database) AuthenticatePlayer(login, password string) (PlayerID, error) {
+	var rec *playerRecord
+	var ok bool
+	if rec, ok = db.players[login]; !ok {
+		return PlayerID(0), InvalidArgumentError{"Player nick '" + login + "' not in the database"}
 	} else if rec.password != password {
-		return PlayerID(0), false
-	} else {
-		return rec.playerID, true
+		return PlayerID(0), InvalidArgumentError{"Passwords do not match"}
 	}
+
+	return rec.playerID, nil
 }
 
 // GetLeaderboard returns the leaderboard

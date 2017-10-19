@@ -40,14 +40,14 @@ func (h *LoginHandler) ProcessRequest(resp http.ResponseWriter, req *http.Reques
 	var credent loginRequest
 	err := GetJSONFromRequest(req, &credent)
 	if err != nil {
-		http.Error(resp, err.(RequestError).Message, http.StatusBadRequest)
+		http.Error(resp, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	// Authenticate
-	id, ok := h.core.AuthenticatePlayer(credent.Name, credent.Password)
-	if !ok {
-		http.Error(resp, "Failed to authenticate user", http.StatusForbidden)
+	id, err := h.core.AuthenticatePlayer(credent.Name, credent.Password)
+	if err != nil {
+		http.Error(resp, err.Error(), http.StatusForbidden)
 		return
 	}
 

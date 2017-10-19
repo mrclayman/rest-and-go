@@ -29,8 +29,15 @@ func NewCore() *Core {
 // provided by the user with the database. Upon successful
 // verification, 'true' and the player's internal ID are
 // returned, otherwise 'false' and a zero player ID is returned
-func (c *Core) AuthenticatePlayer(name, pass string) (PlayerID, bool) {
-	return c.db.AuthenticatePlayer(name, pass)
+func (c *Core) AuthenticatePlayer(name, pass string) (PlayerID, error) {
+	id, err := c.db.AuthenticatePlayer(name, pass)
+	if err != nil {
+		return InvalidPlayerID, err
+	} else if _, ok := c.players[id]; ok {
+		return InvalidPlayerID, LogicError{"Duplicate login by player"}
+	}
+
+	return id, nil
 }
 
 // AddConnected adds a newly connected player to the system
