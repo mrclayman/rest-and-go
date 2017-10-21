@@ -9,23 +9,23 @@ type MessageID uint16
 const (
 	// InvalidMessageID identifies an invalid value
 	// for a message ID
-	InvalidMessageID MessageID = 0
+	InvalidMessageID MessageID = iota
 
 	// WeaponFiredMessageID identifies a message about
 	// a player firing a weapon
-	WeaponFiredMessageID MessageID = 1
+	WeaponFiredMessageID MessageID = iota
 
 	// MoveMessageID identifies a message about
 	// a player moving to a new position
-	MoveMessageID MessageID = 2
+	MoveMessageID MessageID = iota
 
 	// PlayerListMessageID identifies a message about
 	// a player querying the player list
-	PlayerListMessageID MessageID = 3
+	PlayerListMessageID MessageID = iota
 
 	// QuitMessageID indicates that a player
 	// wishes to quit the match
-	QuitMessageID MessageID = 65535
+	QuitMessageID MessageID = iota
 )
 
 // IsValidMessageID checks that the id
@@ -48,9 +48,9 @@ func isValidMessageID(mid MessageID) bool {
 // Message represents a message received on the
 // WebSocket interface
 type Message struct {
-	MsgID   MessageID              `json:"message_id"`
-	MatchID core.MatchID           `json:"match_id"`
-	PID     core.PlayerID          `json:"player_id"`
-	Token   core.WebSocketToken    `json:"token"`
-	Data    map[string]interface{} `json:"data"`
+	MsgID   MessageID           `json:"message_id"`
+	MatchID core.MatchID        `json:"match_id"`
+	PID     core.PlayerID       `json:"player_id"`
+	Token   core.WebSocketToken `json:"token"`
+	Data    interface{}         `json:"data"`
 }

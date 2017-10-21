@@ -4,7 +4,7 @@ import "strconv"
 
 ////////////////// Constants /////////////////
 const (
-	serverAddress string = "http://localhost:8000"
+	serverAddress string = "localhost:8000"
 )
 
 ////////////////// Types ////////////////

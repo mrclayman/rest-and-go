@@ -7,10 +7,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"net/url"
-
-	"github.com/gorilla/websocket"
 )
+
+const restAPIProtocol string = "http://"
 
 func processResponse(resp *http.Response, out interface{}) error {
 	var respData []byte
@@ -35,7 +34,7 @@ func processResponse(resp *http.Response, out interface{}) error {
 }
 
 func post(client *http.Client, endpoint string, data []byte, out interface{}) error {
-	resp, err := client.Post(serverAddress+endpoint, "application/json",
+	resp, err := client.Post(restAPIProtocol+serverAddress+endpoint, "application/json",
 		bytes.NewReader(data))
 	if err != nil {
 		return err
@@ -47,7 +46,7 @@ func post(client *http.Client, endpoint string, data []byte, out interface{}) er
 }
 
 func get(client *http.Client, endpoint string, auth PlayerAuthData, out interface{}) error {
-	url := serverAddress + endpoint + "?" + auth.ToGet()
+	url := restAPIProtocol + serverAddress + endpoint + "?" + auth.ToGet()
 	resp, err := client.Get(url)
 	if err != nil {
 		return err
@@ -56,12 +55,4 @@ func get(client *http.Client, endpoint string, auth PlayerAuthData, out interfac
 	}
 
 	return nil
-}
-
-func connectSession(sessionData *MatchSessionData) (*websocket.Conn, error) {
-	u := url.URL{Scheme: "ws", Host: serverAddress, Path: "/match/room"}
-}
-
-func enterMatchLoop(c *http.Client, sessionData *MatchSessionData) error {
-
 }

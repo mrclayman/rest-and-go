@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/mrclayman/rest-and-go/server/core"
@@ -21,7 +22,10 @@ func NewLeaderboardHandler(c *core.Core) *LeaderboardHandler {
 // ProcessRequest process the client's request and prepares
 // an appropriate response
 func (h *LeaderboardHandler) ProcessRequest(resp http.ResponseWriter, req *http.Request) {
+	log.Println("Received leaderboard list request")
+
 	if req.Method != "GET" {
+		log.Println("Wrong HTTP method used in leaderboard list request")
 		http.Error(resp, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
@@ -32,9 +36,11 @@ func (h *LeaderboardHandler) ProcessRequest(resp http.ResponseWriter, req *http.
 	// Authenticate user
 	playerID, token, err := GetPlayerDataFromGET(req)
 	if err != nil {
+		log.Printf("Could not obtain player's credentials from GET: %v", err.Error())
 		http.Error(resp, err.Error(), http.StatusBadRequest)
 		return
 	} else if !h.core.IsLoggedIn(playerID, token) {
+		log.Printf("Failed to authenticate token of player %v", playerID)
 		http.Error(resp, "Could not authenticate player's token", http.StatusUnauthorized)
 		return
 	}
@@ -45,6 +51,7 @@ func (h *LeaderboardHandler) ProcessRequest(resp http.ResponseWriter, req *http.
 	strGameType, req.URL.Path = SplitPath(req.URL.Path)
 	gameType, ok := core.IsValidGameType(strGameType)
 	if !ok {
+		log.Printf("Invalid game type specified in leaderboard request of player %v", playerID)
 		http.Error(resp, "Invalid game type specified", http.StatusBadRequest)
 		return
 	}
@@ -53,7 +60,10 @@ func (h *LeaderboardHandler) ProcessRequest(resp http.ResponseWriter, req *http.
 	// serialize it into a JSON structure for dispatch
 	leaderboard, err := h.core.GetLeaderboardForJSON(gameType)
 	if err != nil {
-		http.Error(resp, "Failed to obtain leaderboard", http.StatusInternalServerError)
+		log.Printf("Could not obtain leaderboard for mode '%v' for player %v: %v", strGameType, playerID, err.Error())
+		http.Error(resp, "Failed to obtain leaderboard: "+err.Error(), http.StatusInternalServerError)
 	}
+
 	WriteJSONToResponse(resp, leaderboard)
+	log.Printf("Response to leaderboard request of player %v dispatched", playerID)
 }

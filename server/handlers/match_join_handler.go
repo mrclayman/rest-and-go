@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/mrclayman/rest-and-go/server/core"
@@ -32,7 +33,10 @@ func NewMatchJoinHandler(c *core.Core) *MatchJoinHandler {
 // ProcessRequest processes the user's request
 // and generates an appropriate response
 func (h *MatchJoinHandler) ProcessRequest(resp http.ResponseWriter, req *http.Request) {
+	log.Println("Received match join request")
+
 	if req.Method != "POST" {
+		log.Println("Wrong HTTP method used in match join request")
 		http.Error(resp, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
@@ -41,17 +45,21 @@ func (h *MatchJoinHandler) ProcessRequest(resp http.ResponseWriter, req *http.Re
 	var join joinRequest
 	err := GetJSONFromRequest(req, &join)
 	if err != nil {
+		log.Println("Failed to parse matchlist request body: " + err.Error())
 		http.Error(resp, err.Error(), http.StatusBadRequest)
 		return
 	} else if !h.core.IsLoggedIn(join.PID, join.Token) {
+		log.Println("Could not authenticate player's token")
 		http.Error(resp, "Could not authenticate player's token", http.StatusUnauthorized)
 		return
 	}
 
 	// Generate WebSocket token and add the player
 	// to the match, or create a new match if necessary
+	log.Printf("Registering player %v in match %v", join.PID, join.MID)
 	wsToken := core.GenerateWebSocketToken()
 	if join.MID, err = h.core.JoinMatch(join.MID, join.PID, wsToken, join.GType); err != nil {
+		log.Println(err.Error())
 		http.Error(resp, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -60,5 +68,7 @@ func (h *MatchJoinHandler) ProcessRequest(resp http.ResponseWriter, req *http.Re
 		"match_id": join.MID,
 		"ws_token": wsToken,
 	}
+
 	WriteJSONToResponse(resp, output)
+	log.Printf("Response to match join request of player %v dispatched", join.PID)
 }

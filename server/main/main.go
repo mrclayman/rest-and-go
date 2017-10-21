@@ -1,17 +1,22 @@
 package main
 
 import (
+	"log"
 	"math/rand"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/mrclayman/rest-and-go/server/core"
 	"github.com/mrclayman/rest-and-go/server/handlers"
 )
 
+// port defines the server's listen port number
+const port uint16 = 8000
+
 // Application structure binds together all the important
 // parts of the server
-type Application struct {
+type application struct {
 	appCore    *core.Core
 	dispatcher *handlers.MainDispatcher
 }
@@ -19,9 +24,10 @@ type Application struct {
 func main() {
 	rand.Seed(time.Now().UnixNano())
 	core := core.NewCore()
-	app := &Application{
+	app := &application{
 		appCore:    core,
 		dispatcher: handlers.NewMainDispatcher(core),
 	}
-	http.ListenAndServe(":8000", app.dispatcher)
+	log.Printf("Starting server on port %v", port)
+	http.ListenAndServe(":"+strconv.Itoa(int(port)), app.dispatcher)
 }

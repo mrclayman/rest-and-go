@@ -7,7 +7,7 @@ import (
 )
 
 func printLoginQuery() PlayerLogin {
-	fmt.Println("You need to log in first. Pick one of the nicknames below:")
+	fmt.Println("You need to log in first. Pick the number of the identity you want to login as:")
 	for i, player := range PlayerLogins {
 		fmt.Printf("%v. %v\n", i+1, player.Nick)
 	}

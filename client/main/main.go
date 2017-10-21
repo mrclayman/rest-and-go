@@ -53,12 +53,16 @@ func main() {
 		case 3:
 			fmt.Println("Joining a match")
 			err = client.JoinMatch(&cl, authData)
+		case 4:
+			fmt.Println("Creating a new match")
+			err = client.CreateMatch(&cl, authData)
 		default:
 			break
 		}
 
 		if err != nil {
 			fmt.Println(err.Error())
+			break
 		}
 	}
 }

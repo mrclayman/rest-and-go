@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/mrclayman/rest-and-go/server/core"
@@ -31,7 +32,10 @@ func NewLoginHandler(c *core.Core) *LoginHandler {
 
 // ProcessRequest handles the login POST request
 func (h *LoginHandler) ProcessRequest(resp http.ResponseWriter, req *http.Request) {
+	log.Println("Received login request")
+
 	if req.Method != "POST" {
+		log.Println("Wrong HTTP method used in login request")
 		http.Error(resp, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
@@ -40,6 +44,7 @@ func (h *LoginHandler) ProcessRequest(resp http.ResponseWriter, req *http.Reques
 	var credent loginRequest
 	err := GetJSONFromRequest(req, &credent)
 	if err != nil {
+		log.Printf("Failed to parse JSON from login request body: %v", err.Error())
 		http.Error(resp, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -47,11 +52,13 @@ func (h *LoginHandler) ProcessRequest(resp http.ResponseWriter, req *http.Reques
 	// Authenticate
 	id, err := h.core.AuthenticatePlayer(credent.Name, credent.Password)
 	if err != nil {
+		log.Println(err.Error())
 		http.Error(resp, err.Error(), http.StatusForbidden)
 		return
 	}
 
 	// Success, generate a token for the player and add them
+	log.Printf("Registering player '%v' (id %v) in the system", credent.Name, id)
 	token := core.GenerateAuthenticationToken()
 	h.core.AddConnected(id, credent.Name, token)
 
@@ -59,4 +66,5 @@ func (h *LoginHandler) ProcessRequest(resp http.ResponseWriter, req *http.Reques
 	respData := map[string]interface{}{"id": id, "token": token}
 	// TODO Should I check that the response has been serialized correctly?
 	WriteJSONToResponse(resp, respData)
+	log.Printf("Response to login request of player '%v' (id %v) dispatched", credent.Name, id)
 }
