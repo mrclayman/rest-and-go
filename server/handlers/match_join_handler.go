@@ -12,10 +12,10 @@ import (
 // existing match or create a new one based
 // on the desired game type
 type joinRequest struct {
-	PID   core.PlayerID  `json:"player_id"`
-	Token core.AuthToken `json:"token"`
-	MID   core.MatchID   `json:"match_id"`
-	GType core.GameType  `json:"game_type"`
+	PlayerID core.PlayerID  `json:"player_id"`
+	Token    core.AuthToken `json:"token"`
+	MatchID  core.MatchID   `json:"match_id"`
+	GType    core.GameType  `json:"game_type"`
 }
 
 // MatchJoinHandler handles requests to join
@@ -48,7 +48,7 @@ func (h *MatchJoinHandler) ProcessRequest(resp http.ResponseWriter, req *http.Re
 		log.Println("Failed to parse matchlist request body: " + err.Error())
 		http.Error(resp, err.Error(), http.StatusBadRequest)
 		return
-	} else if !h.core.IsLoggedIn(join.PID, join.Token) {
+	} else if !h.core.IsLoggedIn(join.PlayerID, join.Token) {
 		log.Println("Could not authenticate player's token")
 		http.Error(resp, "Could not authenticate player's token", http.StatusUnauthorized)
 		return
@@ -56,19 +56,19 @@ func (h *MatchJoinHandler) ProcessRequest(resp http.ResponseWriter, req *http.Re
 
 	// Generate WebSocket token and add the player
 	// to the match, or create a new match if necessary
-	log.Printf("Registering player %v in match %v", join.PID, join.MID)
 	wsToken := core.GenerateWebSocketToken()
-	if join.MID, err = h.core.JoinMatch(join.MID, join.PID, wsToken, join.GType); err != nil {
+	if join.MatchID, err = h.core.JoinMatch(join.MatchID, join.PlayerID, wsToken, join.GType); err != nil {
 		log.Println(err.Error())
 		http.Error(resp, err.Error(), http.StatusBadRequest)
 		return
 	}
+	log.Printf("Registered player %v in match %v", join.PlayerID, join.MatchID)
 
 	output := map[string]interface{}{
-		"match_id": join.MID,
+		"match_id": join.MatchID,
 		"ws_token": wsToken,
 	}
 
 	WriteJSONToResponse(resp, output)
-	log.Printf("Response to match join request of player %v dispatched", join.PID)
+	log.Printf("Response to match join request of player %v dispatched", join.PlayerID)
 }

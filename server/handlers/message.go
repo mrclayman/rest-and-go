@@ -48,9 +48,9 @@ func isValidMessageID(mid MessageID) bool {
 // Message represents a message received on the
 // WebSocket interface
 type Message struct {
-	MsgID   MessageID           `json:"message_id"`
-	MatchID core.MatchID        `json:"match_id"`
-	PID     core.PlayerID       `json:"player_id"`
-	Token   core.WebSocketToken `json:"token"`
-	Data    interface{}         `json:"data"`
+	MsgID    MessageID           `json:"message_id"`
+	MatchID  core.MatchID        `json:"match_id"`
+	PlayerID core.PlayerID       `json:"player_id"`
+	Token    core.WebSocketToken `json:"token"`
+	Data     interface{}         `json:"data"`
 }

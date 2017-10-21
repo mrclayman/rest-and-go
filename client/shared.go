@@ -25,9 +25,11 @@ func processResponse(resp *http.Response, out interface{}) error {
 	}
 
 	//fmt.Println(string(respData))
-	err = json.Unmarshal(respData, out)
-	if err != nil {
-		fmt.Println("Failed to unmarshal data:", err.Error())
+	if out != nil {
+		err = json.Unmarshal(respData, out)
+		if err != nil {
+			fmt.Println("Failed to unmarshal data:", err.Error())
+		}
 	}
 
 	return err

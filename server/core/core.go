@@ -81,31 +81,56 @@ func (c *Core) GetMatchlistForJSON() ([]map[string]interface{}, error) {
 	retval := make([]map[string]interface{}, len(c.matches))
 	i := 0
 	for _, match := range c.matches {
-		matchItem := make(map[string]interface{})
-		matchItem["match_id"] = match.ID
-		matchItem["match_type"] = match.Type
-
-		matchRanks := make([]map[string]interface{}, len(match.Ranks))
-		j := 0
-		for _, rank := range match.Ranks {
-			playerRank := make(map[string]interface{})
-			playerRank["player_id"] = rank.Player
-
-			playerNick, ok := c.GetPlayerNick(rank.Player)
-			if !ok {
-				return nil, IntegrityError{"Could not find nickname for player" + PlayerIDToString(rank.Player)}
-			}
-			playerRank["player_name"] = playerNick
-			playerRank["kills"] = rank.Kills
-			playerRank["deaths"] = rank.Deaths
-			matchRanks[j] = playerRank
-			j++
+		jsonMatch, err := c.serializeMatchForJSON(match)
+		if err != nil {
+			return nil, err
 		}
-		matchItem["ranks"] = matchRanks
-		retval[i] = matchItem
+		retval[i] = jsonMatch
 		i++
 	}
 
+	return retval, nil
+}
+
+// GetMatchForJSON returns a serialized version of a
+// match instance with the given ID.
+func (c *Core) GetMatchForJSON(id MatchID) (map[string]interface{}, error) {
+	var match *Match
+	var ok bool
+
+	if match, ok = c.matches[id]; !ok {
+		return nil, InvalidArgumentError{"Match with ID " + MatchIDToString(id) + " not found"}
+	}
+
+	return c.serializeMatchForJSON(match)
+}
+
+// serializeMatchForJSON converts a match instance
+// into a form suitable for serialization into JSON
+// and delivery to the client
+func (c *Core) serializeMatchForJSON(match *Match) (map[string]interface{}, error) {
+	retval := make(map[string]interface{})
+	retval["match_id"] = match.ID
+	retval["match_type"] = match.Type
+
+	matchRanks := make([]map[string]interface{}, len(match.Ranks))
+	j := 0
+	for _, rank := range match.Ranks {
+		playerRank := make(map[string]interface{})
+		playerRank["player_id"] = rank.Player
+
+		playerNick, ok := c.GetPlayerNick(rank.Player)
+		if !ok {
+			return nil, IntegrityError{"Could not find nickname for player" + PlayerIDToString(rank.Player)}
+		}
+
+		playerRank["player_name"] = playerNick
+		playerRank["kills"] = rank.Kills
+		playerRank["deaths"] = rank.Deaths
+		matchRanks[j] = playerRank
+		j++
+	}
+	retval["ranks"] = matchRanks
 	return retval, nil
 }
 
@@ -183,5 +208,22 @@ func (c *Core) QuitMatch(mid MatchID, pid PlayerID) error {
 	}
 	delete(c.playerWSTokens, pid)
 
+	return nil
+}
+
+// QuitPlayer performs logout procedure, removing
+// the player from the table of connected players
+func (c *Core) QuitPlayer(pid PlayerID) error {
+
+	// I know that just attempting to delete the player ID
+	// from the player map wouldn't hurt even if it wasn't
+	// there, but I wanted to indicate that something
+	// is wrong if the logout attempt has been made
+	// without the player being in the system to begin with
+	if _, ok := c.players[pid]; !ok {
+		return InvalidArgumentError{"Player " + PlayerIDToString(pid) + " not connected"}
+	}
+
+	delete(c.players, pid)
 	return nil
 }

@@ -15,12 +15,16 @@ func printMainMenu() int {
 	fmt.Println("2. List leaderboard for a given game type")
 	fmt.Println("3. Join an ongoing match")
 	fmt.Println("4. Create a new match of the given type")
+	fmt.Println("5. Quit")
 
 	var choice int
 	for {
 		fmt.Print("\nYour choice? ")
-		if _, err := fmt.Scanf("%v", &choice); err != nil || choice < 1 || choice > 4 {
-			fmt.Println("Please pick a number between 1 and 4")
+		if _, err := fmt.Scanf("%v", &choice); err != nil || choice < 1 || choice > 5 {
+			fmt.Println("Please pick a number between 1 and 5")
+			if err != nil {
+				client.FlushStdin()
+			}
 		} else {
 			break
 		}
@@ -39,7 +43,8 @@ func main() {
 
 	fmt.Printf("Logged in as %v\n\n", player.Nick)
 
-	for {
+	var done bool
+	for !done {
 		choice := printMainMenu()
 		var err error
 
@@ -56,13 +61,17 @@ func main() {
 		case 4:
 			fmt.Println("Creating a new match")
 			err = client.CreateMatch(&cl, authData)
+		case 5:
+			fmt.Println("Quitting")
+			err = client.Logout(&cl, authData)
+			done = true
 		default:
-			break
+			fmt.Println("Please enter a number between 1 and 5")
+			continue
 		}
 
 		if err != nil {
 			fmt.Println(err.Error())
-			break
 		}
 	}
 }

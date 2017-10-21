@@ -18,6 +18,9 @@ func printLoginQuery() PlayerLogin {
 		fmt.Print("Who do you want to log in as? ")
 		if _, err := fmt.Scanf("%v", &choice); err != nil || choice < 1 || choice > numPlayerLogins {
 			fmt.Println("Please enter a number between 1 and", numPlayerLogins)
+			if err != nil {
+				FlushStdin()
+			}
 		} else {
 			break
 		}

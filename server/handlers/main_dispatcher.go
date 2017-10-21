@@ -14,6 +14,7 @@ type MainDispatcher struct {
 	mlist  *MatchlistHandler
 	lboard *LeaderboardHandler
 	match  *MatchHandler
+	logout *LogoutHandler
 	// TODO Add join handler
 }
 
@@ -26,6 +27,7 @@ func NewMainDispatcher(c *core.Core) *MainDispatcher {
 		mlist:  NewMatchlistHandler(c),
 		lboard: NewLeaderboardHandler(c),
 		match:  NewMatchHandler(c),
+		logout: NewLogoutHandler(c),
 	}
 }
 
@@ -42,6 +44,8 @@ func (dispatcher *MainDispatcher) ServeHTTP(resp http.ResponseWriter, req *http.
 		dispatcher.lboard.ProcessRequest(resp, req)
 	case "match":
 		dispatcher.match.ProcessRequest(resp, req)
+	case "logout":
+		dispatcher.logout.ProcessRequest(resp, req)
 	default:
 		http.Error(resp, "Resource not found", http.StatusNotFound)
 	}

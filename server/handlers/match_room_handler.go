@@ -1,9 +1,9 @@
 package handlers
 
 import (
-	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gorilla/websocket"
 	"github.com/mrclayman/rest-and-go/server/core"
@@ -50,6 +50,7 @@ func (h *MatchRoomHandler) handleWebSockConnection(conn *websocket.Conn) error {
 	for {
 		var msg Message
 		err := conn.ReadJSON(&msg)
+
 		if err != nil {
 			log.Printf("Failed to read message on WS interface: %v", err.Error())
 			return err
@@ -61,12 +62,13 @@ func (h *MatchRoomHandler) handleWebSockConnection(conn *websocket.Conn) error {
 		} else if msg.Token == core.InvalidWebSocketToken {
 			log.Println("Invalid WS token provided by player")
 			return RequestError{"Invalid WS token"}
-		} else if !h.core.IsInMatch(msg.PID, msg.Token) {
-			log.Printf("Player %v not in match", msg.PID)
+		} else if !h.core.IsInMatch(msg.PlayerID, msg.Token) {
+			log.Printf("Player %v not in match", msg.PlayerID)
 			return RequestError{"Player not registered in match"}
 		}
 
 		// Handle individual messages
+		log.Printf("Received message id %v", msg.MsgID)
 		switch msg.MsgID {
 		case WeaponFiredMessageID:
 			err = h.handleWeaponFiredMessage(conn, &msg)
@@ -79,32 +81,69 @@ func (h *MatchRoomHandler) handleWebSockConnection(conn *websocket.Conn) error {
 		}
 
 		if err != nil {
-			log.Println(err.Error())
+			log.Printf("Terminating communication thread for player %v because of error: %v", msg.PlayerID, err.Error())
+			return err
 		}
 		if msg.MsgID == QuitMessageID {
+			log.Printf("Terminating communication thread for player %v because of quit", msg.PlayerID)
 			return err
 		}
 	}
 }
 
 func (h *MatchRoomHandler) handleWeaponFiredMessage(conn *websocket.Conn, msg *Message) error {
-	// TODO Log data from the message on the output
-	fmt.Println("TEST: Weapon fired")
+	log.Printf("TEST: Player %v fired a weapon", msg.PlayerID)
 	return conn.WriteJSON(nil)
 }
 
 func (h *MatchRoomHandler) handlePlayerMoveMessage(conn *websocket.Conn, msg *Message) error {
-	// TODO Log data from the message on the output
-	fmt.Println("TEST: Player moved")
+
+	var values []interface{}
+	var ok bool
+
+	// We need to parse the position vector from the message, where
+	// it is stored as a slice of generic (interface) values
+	if values, ok = msg.Data.([]interface{}); !ok {
+		return RequestError{"Expected a slice of values as the position vector"}
+	} else if len(values) != 3 {
+		return RequestError{"The position vector does not have 3 elements, but " + strconv.Itoa(len(values))}
+	}
+
+	position := make([]float64, 3)
+	for i, value := range values {
+		var number float64
+		if number, ok = value.(float64); !ok {
+			return RequestError{"Expected a 64-bit float in position " + strconv.Itoa(i) + "in the position slice"}
+		}
+		position[i] = number
+	}
+
+	log.Printf("TEST: Player moved to position x = %v, y = %v, z = %v\n", position[0], position[1], position[2])
 	return conn.WriteJSON(nil)
 }
 
 func (h *MatchRoomHandler) handlePlayerListMessage(conn *websocket.Conn, msg *Message) error {
-	fmt.Println("TEST: Player requested a player list")
-	return conn.WriteJSON(nil)
+	log.Printf("TEST: Player %v requested a player list", msg.PlayerID)
+	jsonMatch, err := h.core.GetMatchForJSON(msg.MatchID)
+	if err != nil {
+		return err
+	}
+
+	log.Println(jsonMatch)
+
+	err = conn.WriteJSON(jsonMatch)
+	if err != nil {
+		log.Println("An error occurred while marshaling JSON player list: " + err.Error())
+	}
+	log.Printf("Player list response dispatched to player %v", msg.PlayerID)
+	return err
 }
 
 func (h *MatchRoomHandler) handlePlayerQuitMessage(conn *websocket.Conn, msg *Message) error {
-	fmt.Println("TEST: Player is quitting the match")
+	log.Printf("TEST: Player %v is quitting the match", msg.PlayerID)
+	if err := h.core.QuitMatch(msg.MatchID, msg.PlayerID); err != nil {
+		return RequestError{err.Error()}
+	}
+
 	return conn.WriteJSON(nil)
 }

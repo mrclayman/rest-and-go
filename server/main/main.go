@@ -28,6 +28,7 @@ func main() {
 		appCore:    core,
 		dispatcher: handlers.NewMainDispatcher(core),
 	}
+
 	log.Printf("Starting server on port %v", port)
-	http.ListenAndServe(":"+strconv.Itoa(int(port)), app.dispatcher)
+	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(int(port)), app.dispatcher))
 }

@@ -13,6 +13,7 @@ func getMatchID() uint64 {
 		_, err := fmt.Scanf("%v", &matchID)
 		if err != nil {
 			fmt.Println("I need an integer")
+			FlushStdin()
 		} else {
 			break
 		}

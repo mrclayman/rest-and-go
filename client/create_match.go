@@ -11,7 +11,8 @@ func getGameType() string {
 	fmt.Println("1. Deathmatch")
 	fmt.Println("2. Capture the Flag")
 	fmt.Println("3. Last Man Standing")
-	fmt.Println("4. Duel\n")
+	fmt.Println("4. Duel")
+	fmt.Println()
 	fmt.Print("Pick one by entering its number: ")
 
 	var choice int
@@ -19,6 +20,7 @@ func getGameType() string {
 		_, err := fmt.Scanf("%v", &choice)
 		if err != nil {
 			fmt.Print("I need an integer. Try again: ")
+			FlushStdin()
 			continue
 		}
 

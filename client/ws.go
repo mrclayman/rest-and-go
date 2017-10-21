@@ -61,7 +61,7 @@ func createPlayerMoveMessage(auth PlayerAuthData, sessionData MatchSessionData) 
 		PlayerID:  auth.ID,
 		MatchID:   sessionData.MatchID,
 		Token:     sessionData.WSToken,
-		// TODO Allow user input of the coordinates
+		// TODO Allow user input of the coordinates??
 		Data: []float64{34.4154367, -123.42362662, 11.23267334},
 	}
 
@@ -70,7 +70,7 @@ func createPlayerMoveMessage(auth PlayerAuthData, sessionData MatchSessionData) 
 
 func createPlayerListMessage(auth PlayerAuthData, sessionData MatchSessionData) *message {
 	msg := message{
-		MessageID: playerMovedMessage,
+		MessageID: playerListMessage,
 		PlayerID:  auth.ID,
 		MatchID:   sessionData.MatchID,
 		Token:     sessionData.WSToken,
@@ -121,16 +121,33 @@ func getUserAction() uint16 {
 		fmt.Print("What do you want to do next? ")
 		_, err := fmt.Scanf("%v", &choice)
 
-		if err != nil {
-			fmt.Println("Please enter an integer value")
-		} else if choice < 1 || choice > 4 {
-			fmt.Println("I need a value in the interval between 1 and 4")
+		if err != nil || choice < 1 || choice > 4 {
+			fmt.Println("Please enter an integer value in the interval between 1 and 4")
+			if err != nil {
+				FlushStdin()
+			}
 		} else {
 			break
 		}
 	}
 
 	return choice
+}
+
+func printPlayerList(playerList map[string]interface{}) {
+	fmt.Println(playerList)
+	fmt.Println("---------------\nMatch type: ", playerList["match_type"])
+	fmt.Println("Ranks:")
+	fmt.Println("Player\tKills\tDeaths")
+	fmt.Println("---------------")
+	for _, rank := range playerList["ranks"].([]interface{}) {
+		rankMap, ok := rank.(map[string]interface{})
+		if !ok {
+			fmt.Println("Cannot print player list, item not a map of values")
+			return
+		}
+		fmt.Println(rankMap["player_name"], "\t", rankMap["kills"], "\t", rankMap["deaths"])
+	}
 }
 
 func runMatchLoop(c *http.Client, auth PlayerAuthData, sessionData MatchSessionData) error {
@@ -149,7 +166,15 @@ func runMatchLoop(c *http.Client, auth PlayerAuthData, sessionData MatchSessionD
 			return err
 		}
 
-		if msgID == quitMessage {
+		var respData map[string]interface{}
+		err = conn.ReadJSON(&respData)
+		if err != nil {
+			return err
+		}
+
+		if msgID == playerListMessage {
+			printPlayerList(respData)
+		} else if msgID == quitMessage {
 			break
 		}
 	}
