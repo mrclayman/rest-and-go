@@ -44,10 +44,10 @@ func GetLeaderboard(c *http.Client, auth PlayerAuthData) error {
 		fmt.Println("* LMS/Last Man Standing")
 		fmt.Println("* Duel")
 		fmt.Print("Which game type are you interested in? ")
-		fmt.Scanf("%v", &gtype)
+		gtype = ReadLine()
 
 		if lwrGType, ok := isValidGameType(gtype); !ok {
-			fmt.Println(gtype, "is not a valid game type")
+			fmt.Println("'" + gtype + "' is not a valid game type")
 		} else {
 			gtype = lwrGType
 			break

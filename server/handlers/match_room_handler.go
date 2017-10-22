@@ -113,7 +113,7 @@ func (h *MatchRoomHandler) handlePlayerMoveMessage(conn *websocket.Conn, msg *Me
 	for i, value := range values {
 		var number float64
 		if number, ok = value.(float64); !ok {
-			return RequestError{"Expected a 64-bit float in position " + strconv.Itoa(i) + "in the position slice"}
+			return RequestError{"Expected a 64-bit float in position " + strconv.Itoa(i) + " in the position slice"}
 		}
 		position[i] = number
 	}
@@ -129,13 +129,12 @@ func (h *MatchRoomHandler) handlePlayerListMessage(conn *websocket.Conn, msg *Me
 		return err
 	}
 
-	log.Println(jsonMatch)
-
 	err = conn.WriteJSON(jsonMatch)
 	if err != nil {
 		log.Println("An error occurred while marshaling JSON player list: " + err.Error())
+	} else {
+		log.Printf("Player list response dispatched to player %v", msg.PlayerID)
 	}
-	log.Printf("Player list response dispatched to player %v", msg.PlayerID)
 	return err
 }
 

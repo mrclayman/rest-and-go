@@ -1,7 +1,9 @@
 package client
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 )
 
 // FlushStdin reads the content of stdin until
@@ -12,4 +14,15 @@ import (
 func FlushStdin() {
 	var crap string
 	fmt.Scanln(&crap)
+}
+
+// ReadLine reads a complete line (including white spaces)
+// until a newline character is seen
+func ReadLine() string {
+	scanner := bufio.NewScanner(os.Stdin)
+	if !scanner.Scan() {
+		return ""
+	}
+
+	return scanner.Text()
 }

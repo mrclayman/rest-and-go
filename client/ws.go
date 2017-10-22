@@ -135,7 +135,6 @@ func getUserAction() uint16 {
 }
 
 func printPlayerList(playerList map[string]interface{}) {
-	fmt.Println(playerList)
 	fmt.Println("---------------\nMatch type: ", playerList["match_type"])
 	fmt.Println("Ranks:")
 	fmt.Println("Player\tKills\tDeaths")
@@ -148,6 +147,8 @@ func printPlayerList(playerList map[string]interface{}) {
 		}
 		fmt.Println(rankMap["player_name"], "\t", rankMap["kills"], "\t", rankMap["deaths"])
 	}
+	fmt.Println("---------------")
+	fmt.Println()
 }
 
 func runMatchLoop(c *http.Client, auth PlayerAuthData, sessionData MatchSessionData) error {
