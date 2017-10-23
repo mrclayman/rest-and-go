@@ -9,23 +9,23 @@ type MessageID uint16
 const (
 	// InvalidMessageID identifies an invalid value
 	// for a message ID
-	InvalidMessageID MessageID = iota
+	InvalidMessageID MessageID = 0
 
 	// WeaponFiredMessageID identifies a message about
 	// a player firing a weapon
-	WeaponFiredMessageID MessageID = iota
+	WeaponFiredMessageID MessageID = 1
 
 	// MoveMessageID identifies a message about
 	// a player moving to a new position
-	MoveMessageID MessageID = iota
+	MoveMessageID MessageID = 2
 
 	// PlayerListMessageID identifies a message about
 	// a player querying the player list
-	PlayerListMessageID MessageID = iota
+	PlayerListMessageID MessageID = 3
 
 	// QuitMessageID indicates that a player
 	// wishes to quit the match
-	QuitMessageID MessageID = iota
+	QuitMessageID MessageID = 4
 )
 
 // IsValidMessageID checks that the id
