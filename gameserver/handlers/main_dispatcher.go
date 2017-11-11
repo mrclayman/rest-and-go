@@ -3,7 +3,7 @@ package handlers
 import (
 	"net/http"
 
-	"github.com/mrclayman/rest-and-go/server/core"
+	"github.com/mrclayman/rest-and-go/gameserver/core"
 )
 
 // MainDispatcher aggregates all request handlers

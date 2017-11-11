@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/mrclayman/rest-and-go/server/core"
+	"github.com/mrclayman/rest-and-go/gameserver/core"
 )
 
 // MatchlistHandler handles requests regarding listing

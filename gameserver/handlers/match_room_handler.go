@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/websocket"
-	"github.com/mrclayman/rest-and-go/server/core"
+	"github.com/mrclayman/rest-and-go/gameserver/core"
 )
 
 // MatchRoomHandler handles WebSocket requests

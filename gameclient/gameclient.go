@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/mrclayman/rest-and-go/client"
+	"github.com/mrclayman/rest-and-go/gameclient/client"
 )
 
 ////////////// Functions ////////////////

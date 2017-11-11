@@ -7,8 +7,8 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/mrclayman/rest-and-go/server/core"
-	"github.com/mrclayman/rest-and-go/server/handlers"
+	"github.com/mrclayman/rest-and-go/gameserver/core"
+	"github.com/mrclayman/rest-and-go/gameserver/handlers"
 )
 
 // port defines the server's listen port number
