@@ -15,7 +15,7 @@ ADD . ${GOPATH}/src/github.com/mrclayman/rest-and-go/gameserver/
 # Set the working directory and compile and install the server
 # binaries, and then remove the source files all in one swoop
 WORKDIR ${GOPATH}/src
-RUN go build -a github.com/mrclayman/rest-and-go/gameserver && \
+RUN CGO_ENABLED=0 GOOS=linux go build -a github.com/mrclayman/rest-and-go/gameserver && \
     go install github.com/mrclayman/rest-and-go/gameserver
 
 # Using alpine image will let us reduce
