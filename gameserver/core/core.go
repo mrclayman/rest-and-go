@@ -227,3 +227,9 @@ func (c *Core) QuitPlayer(pid PlayerID) error {
 	delete(c.players, pid)
 	return nil
 }
+
+// Cleanup performs finalization of
+// of the core object
+func (c *Core) Cleanup() {
+	c.db.Close()
+}

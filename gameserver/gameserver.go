@@ -21,6 +21,10 @@ type application struct {
 	dispatcher *handlers.MainDispatcher
 }
 
+func (a *application) Cleanup() {
+	a.appCore.Cleanup()
+}
+
 func main() {
 	rand.Seed(time.Now().UnixNano())
 	core := core.NewCore()
@@ -28,6 +32,8 @@ func main() {
 		appCore:    core,
 		dispatcher: handlers.NewMainDispatcher(core),
 	}
+
+	defer app.Cleanup()
 
 	log.Printf("Starting server on port %v", port)
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(int(port)), app.dispatcher))

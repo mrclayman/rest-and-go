@@ -1,5 +1,10 @@
 package core
 
+import (
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
+)
+
 // playerRecord is an internal representation
 // of a player record in the database
 type playerRecord struct {
@@ -15,23 +20,37 @@ type playerTable map[string]*playerRecord
 // playerNameIDTable maps player's id's to their nicknames
 type playerNameIDTable map[PlayerID]string
 
-// Database is a mock-up representation of a
-// backend database system containing records
-// about players.
+// Database holds the session object to
+// the database system and also a few
+// auxiliary pieces of information (the
+// name of the database, the prefix for the
+// leaderboard collections,...)
 type Database struct {
-	players      playerTable
-	playerIDs    playerNameIDTable
-	leaderboards GameLeaderboards
+	session               *mgo.Session
+	dbName                string
+	leaderboardCollPrefix string
+	playersCollName       string
 }
 
 // newDatabase creates a pre-filled player database
-func newDatabase() *Database {
-	retval := &Database{
-		players:      newPlayerDBTable(),
-		playerIDs:    newPlayerNameIDTable(),
-		leaderboards: newLeaderboardTables(),
+func newDatabase(URL string) (*Database, error) {
+
+	var retval *Database
+
+	if di, err := mgo.ParseURL(URL); err != nil {
+		return nil, err
+	} else if s, err := mgo.DialWithInfo(di); err != nil {
+		return nil, err
+	} else {
+		retval = &Database{
+			session:               s,
+			dbName:                di.Database,
+			leaderboardCollPrefix: "leaderboard_",
+			playersCollName:       "players",
+		}
 	}
-	return retval
+
+	return retval, nil
 }
 
 // AuthenticatePlayer looks up the player's login name
@@ -42,8 +61,10 @@ func newDatabase() *Database {
 // name provided is not in the database, or the passwords
 // do not match, PlayerTypeID(0) and false is returned
 func (db *Database) AuthenticatePlayer(login, password string) (PlayerID, error) {
-	var rec *playerRecord
-	var ok bool
+
+	c := db.session.DB(db.dbName).C(db.playersCollName)
+	q := c.Find(bson.M{"nick": login, "password": password})
+	q.One
 	if rec, ok = db.players[login]; !ok {
 		return PlayerID(0), InvalidArgumentError{"Player nick '" + login + "' not in the database"}
 	} else if rec.password != password {
@@ -65,4 +86,9 @@ func (db *Database) GetLeaderboard(id GameType) (*Leaderboard, bool) {
 func (db *Database) GetPlayerNick(id PlayerID) (string, bool) {
 	nick, ok := db.playerIDs[id]
 	return nick, ok
+}
+
+// Close closes the internal session
+func (db *Database) Close() {
+	db.session.Close()
 }
