@@ -3,7 +3,7 @@ package core
 // newLeaderboardTables generates a pre-filled
 // map of leaderboard tables, one for each
 // game type
-func newLeaderboardTables() GameLeaderboards {
+/*func newLeaderboardTables() GameLeaderboards {
 	retval := GameLeaderboards{
 		DeathMatch: &Leaderboard{
 			{
@@ -110,4 +110,4 @@ func newLeaderboardTables() GameLeaderboards {
 	}
 
 	return retval
-}
+}*/

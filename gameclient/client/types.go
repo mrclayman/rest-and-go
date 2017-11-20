@@ -4,7 +4,7 @@ import "strconv"
 
 ////////////////// Constants /////////////////
 const (
-	serverAddress string = "localhost:8000"
+	serverAddress string = "claytestgameserver.azurewebsites.net"
 )
 
 ////////////////// Types ////////////////

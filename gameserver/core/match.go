@@ -51,13 +51,15 @@ func NewMatchWithPlayers(gt GameType, ids PlayerIDs) *Match {
 }
 
 // PlayerMatchRank is a record of a player's
-// performance in a match. Structurally, it is
-// equivalent to a record in the leaderboards
-type PlayerMatchRank LeaderboardRecord
+// performance in a match. Since each game type
+// has a slightly different structure for the
+// rank/leaderboard record, the generic
+// interface type is used here
+type PlayerMatchRank interface{}
 
 // PlayerMatchRanks defines a map where each player's
 // rank is identified by that player's id
-type PlayerMatchRanks map[PlayerID]*PlayerMatchRank
+type PlayerMatchRanks map[PlayerID]PlayerMatchRank
 
 // Add adds a player into the match. True is returned
 // upon successful add, false is returned in case the

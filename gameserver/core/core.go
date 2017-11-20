@@ -1,7 +1,5 @@
 package core
 
-import "sort"
-
 // Core is the data core of the application. Its members
 // are accessible to HTTP request handlers to provide the
 // client with the required information
@@ -15,14 +13,19 @@ type Core struct {
 
 // NewCore creates and returns a new core object
 // with pre-filled member structures
-func NewCore() *Core {
+func NewCore(dbURL string) (*Core, error) {
+	db, err := newDatabase(dbURL)
+	if err != nil {
+		return nil, InvalidArgumentError{"Could not connect to database, invalid database URL"}
+	}
+
 	return &Core{
-		db:               newDatabase(),                  // Pre-fill the database
+		db:               db,                             // Pre-fill the database
 		players:          newConnectedPlayerTable(),      // Pre-fill the connected player table
 		matches:          newMatchTable(),                // Pre-fill the match list
 		playerAuthTokens: newConnectedPlayerTokenTable(), // Pre-fill the player auth token table
 		playerWSTokens:   newPlayerInMatchTokenTable(),   // Pre-fill the player-in-match token table
-	}
+	}, nil
 }
 
 // AuthenticatePlayer verifies the login credentials
@@ -66,9 +69,8 @@ func (c *Core) IsInMatch(id PlayerID, token WebSocketToken) bool {
 // identified by id. If the player has not been found
 // in the database, empty string and an appropriate
 // boolean flag are returned
-func (c *Core) GetPlayerNick(id PlayerID) (string, bool) {
-	nick, ok := c.db.GetPlayerNick(id)
-	return nick, ok
+func (c *Core) GetPlayerNick(id PlayerID) (string, error) {
+	return c.db.GetPlayerNick(id)
 }
 
 // GetMatchlistForJSON returns a transformed matchlist
@@ -112,53 +114,14 @@ func (c *Core) serializeMatchForJSON(match *Match) (map[string]interface{}, erro
 	retval := make(map[string]interface{})
 	retval["match_id"] = match.ID
 	retval["match_type"] = match.Type
-
-	matchRanks := make([]map[string]interface{}, len(match.Ranks))
-	j := 0
-	for _, rank := range match.Ranks {
-		playerRank := make(map[string]interface{})
-		playerRank["player_id"] = rank.Player
-
-		playerNick, ok := c.GetPlayerNick(rank.Player)
-		if !ok {
-			return nil, IntegrityError{"Could not find nickname for player" + PlayerIDToString(rank.Player)}
-		}
-
-		playerRank["player_name"] = playerNick
-		playerRank["kills"] = rank.Kills
-		playerRank["deaths"] = rank.Deaths
-		matchRanks[j] = playerRank
-		j++
-	}
-	retval["ranks"] = matchRanks
+	retval["ranks"] = match.Ranks
 	return retval, nil
 }
 
 // GetLeaderboardForJSON returns a transformed leaderboard
 // associated with the given game type.
-func (c *Core) GetLeaderboardForJSON(gt GameType) ([]map[string]interface{}, error) {
-	board, ok := c.db.GetLeaderboard(gt)
-	if !ok {
-		return nil, IntegrityError{"Leaderboard has not been created for type " + GameTypeToString(gt)}
-	}
-
-	sortedBoard := *board
-	sort.Sort(sortedBoard)
-	retval := make([]map[string]interface{}, len(sortedBoard))
-	for i, record := range sortedBoard {
-		item := make(map[string]interface{})
-		item["player_id"] = record.Player
-
-		playerNick, ok := c.GetPlayerNick(record.Player)
-		if !ok {
-			return nil, IntegrityError{"Could not find nickname for player" + PlayerIDToString(record.Player)}
-		}
-		item["player_name"] = playerNick
-		item["kills"] = record.Kills
-		item["deaths"] = record.Deaths
-		retval[i] = item
-	}
-	return retval, nil
+func (c *Core) GetLeaderboardForJSON(gt GameType) (interface{}, error) {
+	return c.db.GetLeaderboard(gt)
 }
 
 // JoinMatch lets a player with id 'pid' join a match 'mid',

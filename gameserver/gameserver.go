@@ -14,6 +14,8 @@ import (
 // port defines the server's listen port number
 const port uint16 = 8000
 
+const dbURL string = "mongodb://localhost:27017/testgamedb"
+
 // Application structure binds together all the important
 // parts of the server
 type application struct {
@@ -27,7 +29,11 @@ func (a *application) Cleanup() {
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
-	core := core.NewCore()
+	core, err := core.NewCore(dbURL)
+	if err != nil {
+		log.Fatal("Failed to create server core object: " + err.Error())
+	}
+
 	app := &application{
 		appCore:    core,
 		dispatcher: handlers.NewMainDispatcher(core),

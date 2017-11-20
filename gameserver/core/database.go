@@ -64,31 +64,81 @@ func (db *Database) AuthenticatePlayer(login, password string) (PlayerID, error)
 
 	c := db.session.DB(db.dbName).C(db.playersCollName)
 	q := c.Find(bson.M{"nick": login, "password": password})
-	q.One
-	if rec, ok = db.players[login]; !ok {
-		return PlayerID(0), InvalidArgumentError{"Player nick '" + login + "' not in the database"}
-	} else if rec.password != password {
-		return PlayerID(0), InvalidArgumentError{"Passwords do not match"}
+	r := make(map[string]interface{})
+
+	if err := q.One(r); err != nil {
+		return PlayerID(0), DatabaseError{err.Error()}
+	} else if errMsg := isError(r); errMsg != "" {
+		return PlayerID(0), DatabaseError{errMsg}
+	} else if len(r) == 0 {
+		return PlayerID(0), InvalidArgumentError{"Wrong player nickname or password"}
 	}
 
-	return rec.playerID, nil
+	return r["id"].(PlayerID), nil
 }
 
 // GetLeaderboard returns the leaderboard
 // associated with the given type
-func (db *Database) GetLeaderboard(id GameType) (*Leaderboard, bool) {
-	leaderboard, ok := db.leaderboards[id]
-	return leaderboard, ok
+func (db *Database) GetLeaderboard(id GameType) (interface{}, error) {
+	lbName := db.leaderboardCollPrefix + string(id)
+	c := db.session.DB(db.dbName).C(lbName)
+
+	var r interface{}
+	var sortingCrit []string
+	switch id {
+	case DeathMatch:
+		r = DMLeaderboard{}
+		sortingCrit = dmLeaderboardSortingCriterion
+	case CaptureTheFlag:
+		r = CTFLeaderboard{}
+		sortingCrit = ctfLeaderboardSortingCriterion
+	case LastManStanding:
+		r = LMSLeaderboard{}
+		sortingCrit = lmsLeaderboardSortingCriterion
+	case Duel:
+		r = DuelLeaderboard{}
+		sortingCrit = duelLeaderboardSortingCriterion
+	}
+
+	q := c.Find(bson.M{}).Sort(sortingCrit...)
+
+	if err := q.All(r); err != nil {
+		return nil, err
+	}
+	return r, nil
 }
 
 // GetPlayerNick queries the database for a nickname
 // of a player identified by 'id'
-func (db *Database) GetPlayerNick(id PlayerID) (string, bool) {
-	nick, ok := db.playerIDs[id]
-	return nick, ok
+func (db *Database) GetPlayerNick(id PlayerID) (string, error) {
+	c := db.session.DB(db.dbName).C(db.playersCollName)
+	q := c.Find(bson.M{"playerid": id}).Select(bson.M{"playername": 1})
+
+	var r map[string]interface{}
+	if err := q.One(r); err != nil {
+		return "", err
+	}
+
+	return r["playername"].(string), nil
 }
 
 // Close closes the internal session
 func (db *Database) Close() {
 	db.session.Close()
+}
+
+// isError checks the map in the argument
+// for the presence of either "$err" or "errmsg",
+// both of which are values added by MongoDB
+// in case there was a problem while executing
+// the query
+func isError(r map[string]interface{}) string {
+
+	if v, ok := r["$err"]; ok {
+		return v.(string)
+	} else if v, ok := r["errmsg"]; ok {
+		return v.(string)
+	}
+
+	return ""
 }

@@ -1,39 +1,58 @@
 package core
 
-// LeaderboardRecord represents one player's record
-// in a leaderboard for some game type.
-type LeaderboardRecord struct {
-	Player PlayerID
-	Kills  uint
-	Deaths uint
+var (
+	dmLeaderboardSortingCriterion   = []string{"-kills", "deaths"}
+	ctfLeaderboardSortingCriterion  = []string{"-captures", "-kills", "deaths"}
+	lmsLeaderboardSortingCriterion  = []string{"-wins", "-kills", "deaths"}
+	duelLeaderboardSortingCriterion = lmsLeaderboardSortingCriterion
+)
+
+// DMLeaderboardRecord represents a record
+// in the Deathmatch game type leaderboard
+type DMLeaderboardRecord struct {
+	PlayerID   PlayerID `json:"player_id" bson:"playerid"`
+	PlayerName string   `json:"player_name" bson:"playername"`
+	Kills      uint     `json:"kills" bson:"kills"`
+	Deaths     uint     `json:"deaths" bson:"deaths"`
 }
 
-// Leaderboard defines a leaderboard, i.e.
-// a list of player records for some specific
-// game type
-type Leaderboard []LeaderboardRecord
+// DMLeaderboard represents a slice of
+// DeathMatch leaderboard records
+type DMLeaderboard []DMLeaderboardRecord
 
-// Len returns the number of records in a leaderboard
-func (l Leaderboard) Len() int {
-	return len(l)
+// CTFLeaderboardRecord represents a record
+// in the Capture-the-Flag game type leaderboard
+type CTFLeaderboardRecord struct {
+	PlayerID   PlayerID `json:"player_id" bson:"playerid"`
+	PlayerName string   `json:"player_name" bson:"playername"`
+	Kills      uint     `json:"kills" bson:"kills"`
+	Deaths     uint     `json:"deaths" bson:"deaths"`
+	Captures   uint     `json:"captures" bson:"captures"`
 }
 
-// Swap swaps the records in the leaderboard
-// at positions i and j
-func (l Leaderboard) Swap(i, j int) {
-	l[i], l[j] = l[j], l[i]
+// CTFLeaderboard represents a slice of the
+// Capture-the-Flag game type leaderboard records
+type CTFLeaderboard []CTFLeaderboardRecord
+
+// LMSLeaderboardRecord represents a record
+// in the Last-Man-Standing game type leaderboard
+type LMSLeaderboardRecord struct {
+	PlayerID   PlayerID `json:"player_id" bson:"playerid"`
+	PlayerName string   `json:"player_name" bson:"playername"`
+	Kills      uint     `json:"kills" bson:"kills"`
+	Deaths     uint     `json:"deaths" bson:"deaths"`
+	Wins       uint     `json:"wins" bson:"wins"`
 }
 
-// Less compares the kill count record
-// in records at positions i and j. Since
-// we want to sort the leadeboard in
-// descending order, we check that
-// kill count at l[i] > kill count at l[j]
-func (l Leaderboard) Less(i, j int) bool {
-	return l[i].Kills > l[j].Kills
-}
+// LMSLeaderboard represents a slice of the
+// Last-Man-Standing game type leaderboards
+type LMSLeaderboard []LMSLeaderboardRecord
 
-// GameLeaderboards defines a map of leaderboards
-// identified by a given game type id
-type GameLeaderboards map[GameType]*Leaderboard
+// DuelLeaderboardRecord defines the structure
+// of the Duel game type leaderboard (currently,
+// it is shared with the LMS game type record)
+type DuelLeaderboardRecord LMSLeaderboardRecord
 
+// DuelLeaderboard represents a slice of the
+// Duel game type leaderboard
+type DuelLeaderboard LMSLeaderboard
