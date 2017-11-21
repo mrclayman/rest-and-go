@@ -1,24 +1,13 @@
-package core
+package database
 
 import (
+	"github.com/mrclayman/rest-and-go/gameserver/core/errors"
+	"github.com/mrclayman/rest-and-go/gameserver/core/leaderboard"
+	"github.com/mrclayman/rest-and-go/gameserver/core/match"
+	"github.com/mrclayman/rest-and-go/gameserver/core/player"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
-
-// playerRecord is an internal representation
-// of a player record in the database
-type playerRecord struct {
-	playerID PlayerID
-	password string
-}
-
-// playerTable is a exactly that, a table of
-// player records. Keys are the players' login
-// names.
-type playerTable map[string]*playerRecord
-
-// playerNameIDTable maps player's id's to their nicknames
-type playerNameIDTable map[PlayerID]string
 
 // Database holds the session object to
 // the database system and also a few
@@ -32,27 +21,6 @@ type Database struct {
 	playersCollName       string
 }
 
-// newDatabase creates a pre-filled player database
-func newDatabase(URL string) (*Database, error) {
-
-	var retval *Database
-
-	if di, err := mgo.ParseURL(URL); err != nil {
-		return nil, err
-	} else if s, err := mgo.DialWithInfo(di); err != nil {
-		return nil, err
-	} else {
-		retval = &Database{
-			session:               s,
-			dbName:                di.Database,
-			leaderboardCollPrefix: "leaderboard_",
-			playersCollName:       "players",
-		}
-	}
-
-	return retval, nil
-}
-
 // AuthenticatePlayer looks up the player's login name
 // in the table of players and compares the password
 // provided in the argument with the one stored in the
@@ -60,43 +28,43 @@ func newDatabase(URL string) (*Database, error) {
 // internal ID is returned. In the case the player
 // name provided is not in the database, or the passwords
 // do not match, PlayerTypeID(0) and false is returned
-func (db *Database) AuthenticatePlayer(login, password string) (PlayerID, error) {
+func (db *Database) AuthenticatePlayer(login, password string) (player.ID, error) {
 
 	c := db.session.DB(db.dbName).C(db.playersCollName)
 	q := c.Find(bson.M{"nick": login, "password": password})
 	r := make(map[string]interface{})
 
 	if err := q.One(r); err != nil {
-		return PlayerID(0), DatabaseError{err.Error()}
+		return player.ID(0), errors.DatabaseError{Message: err.Error()}
 	} else if errMsg := isError(r); errMsg != "" {
-		return PlayerID(0), DatabaseError{errMsg}
+		return player.ID(0), errors.DatabaseError{Message: errMsg}
 	} else if len(r) == 0 {
-		return PlayerID(0), InvalidArgumentError{"Wrong player nickname or password"}
+		return player.ID(0), errors.InvalidArgumentError{Message: "Wrong player nickname or password"}
 	}
 
-	return r["id"].(PlayerID), nil
+	return r["id"].(player.ID), nil
 }
 
 // GetLeaderboard returns the leaderboard
 // associated with the given type
-func (db *Database) GetLeaderboard(id GameType) (interface{}, error) {
-	lbName := db.leaderboardCollPrefix + string(id)
+func (db *Database) GetLeaderboard(ID match.GameType) (interface{}, error) {
+	lbName := db.leaderboardCollPrefix + match.GameTypeToString(ID)
 	c := db.session.DB(db.dbName).C(lbName)
 
 	var r interface{}
 	var sortingCrit []string
-	switch id {
-	case DeathMatch:
-		r = DMLeaderboard{}
+	switch ID {
+	case match.DeathMatch:
+		r = leaderboard.DMLeaderboard{}
 		sortingCrit = dmLeaderboardSortingCriterion
-	case CaptureTheFlag:
-		r = CTFLeaderboard{}
+	case match.CaptureTheFlag:
+		r = leaderboard.CTFLeaderboard{}
 		sortingCrit = ctfLeaderboardSortingCriterion
-	case LastManStanding:
-		r = LMSLeaderboard{}
+	case match.LastManStanding:
+		r = leaderboard.LMSLeaderboard{}
 		sortingCrit = lmsLeaderboardSortingCriterion
-	case Duel:
-		r = DuelLeaderboard{}
+	case match.Duel:
+		r = leaderboard.DuelLeaderboard{}
 		sortingCrit = duelLeaderboardSortingCriterion
 	}
 
@@ -110,7 +78,7 @@ func (db *Database) GetLeaderboard(id GameType) (interface{}, error) {
 
 // GetPlayerNick queries the database for a nickname
 // of a player identified by 'id'
-func (db *Database) GetPlayerNick(id PlayerID) (string, error) {
+func (db *Database) GetPlayerNick(id player.ID) (string, error) {
 	c := db.session.DB(db.dbName).C(db.playersCollName)
 	q := c.Find(bson.M{"playerid": id}).Select(bson.M{"playername": 1})
 
@@ -125,20 +93,4 @@ func (db *Database) GetPlayerNick(id PlayerID) (string, error) {
 // Close closes the internal session
 func (db *Database) Close() {
 	db.session.Close()
-}
-
-// isError checks the map in the argument
-// for the presence of either "$err" or "errmsg",
-// both of which are values added by MongoDB
-// in case there was a problem while executing
-// the query
-func isError(r map[string]interface{}) string {
-
-	if v, ok := r["$err"]; ok {
-		return v.(string)
-	} else if v, ok := r["errmsg"]; ok {
-		return v.(string)
-	}
-
-	return ""
 }

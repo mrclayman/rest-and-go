@@ -2,7 +2,7 @@ package core
 
 // newConnectedPlayerTable creates a table of
 // connected players
-func newConnectedPlayerTable() Players {
+func newConnectedPlayerTable() Map {
 	// The list below corresponds to the complete
 	// list of players already participating in matches
 	// (see function newMatchTable() in match_dummy_data.go)
@@ -45,7 +45,7 @@ func newConnectedPlayerTable() Players {
 		},
 	}
 
-	retval := make(Players, len(players))
+	retval := make(Map, len(players))
 	for _, player := range players {
 		retval[player.ID] = player
 	}

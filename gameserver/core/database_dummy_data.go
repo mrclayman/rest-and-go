@@ -2,7 +2,7 @@ package core
 
 // newPlayerDBTable creates a pre-filled table
 // of players
-func newPlayerDBTable() playerTable {
+/*func newPlayerDBTable() playerTable {
 	return playerTable{
 		"phreak":       &playerRecord{playerID: 1223145, password: "c0mm4nd0"},
 		"fatal1ty":     &playerRecord{playerID: 8535253, password: "Quake4ever"}, // Already connected
@@ -47,3 +47,4 @@ func newPlayerNameIDTable() playerNameIDTable {
 		4219691: "Mikky",
 	}
 }
+*/

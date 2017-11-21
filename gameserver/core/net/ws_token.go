@@ -1,4 +1,4 @@
-package core
+package net
 
 // WebSocketToken defines the type for player's
 // WebSock token used to identify a player

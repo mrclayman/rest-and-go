@@ -1,4 +1,4 @@
-package core
+package match
 
 // GameType is a type designating the type of a game/match
 type GameType string

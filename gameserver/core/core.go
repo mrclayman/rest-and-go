@@ -1,12 +1,28 @@
 package core
 
+import (
+	"github.com/mrclayman/rest-and-go/gameserver/core/database"
+	"github.com/mrclayman/rest-and-go/gameserver/core/errors"
+	"github.com/mrclayman/rest-and-go/gameserver/core/match"
+	"github.com/mrclayman/rest-and-go/gameserver/core/net"
+	"github.com/mrclayman/rest-and-go/gameserver/core/player"
+)
+
+// PlayerAuthTokens aggregates authentication
+// tokens of connected players
+type PlayerAuthTokens map[player.ID]net.AuthToken
+
+// PlayerWSTokens aggregates WebSocket tokens
+// of players participating in matches
+type PlayerWSTokens map[player.ID]net.WebSocketToken
+
 // Core is the data core of the application. Its members
 // are accessible to HTTP request handlers to provide the
 // client with the required information
 type Core struct {
-	db               *Database
-	players          Players
-	matches          Matches
+	db               *database.Database
+	players          player.Map
+	matches          match.Matches
 	playerAuthTokens PlayerAuthTokens
 	playerWSTokens   PlayerWSTokens
 }
@@ -14,9 +30,9 @@ type Core struct {
 // NewCore creates and returns a new core object
 // with pre-filled member structures
 func NewCore(dbURL string) (*Core, error) {
-	db, err := newDatabase(dbURL)
+	db, err := database.New(dbURL)
 	if err != nil {
-		return nil, InvalidArgumentError{"Could not connect to database, invalid database URL"}
+		return nil, errors.InvalidArgumentError{Message: "Could not connect to database, invalid database URL"}
 	}
 
 	return &Core{
@@ -30,38 +46,39 @@ func NewCore(dbURL string) (*Core, error) {
 
 // AuthenticatePlayer verifies the login credentials
 // provided by the user with the database. Upon successful
-// verification, 'true' and the player's internal ID are
-// returned, otherwise 'false' and a zero player ID is returned
-func (c *Core) AuthenticatePlayer(name, pass string) (PlayerID, error) {
+// verification, the player's internal ID and nil are
+// returned, otherwise an invalid player ID and the error
+// object are returned
+func (c *Core) AuthenticatePlayer(name, pass string) (player.ID, error) {
 	id, err := c.db.AuthenticatePlayer(name, pass)
 	if err != nil {
-		return InvalidPlayerID, err
+		return player.InvalidID, err
 	} else if _, ok := c.players[id]; ok {
-		return InvalidPlayerID, LogicError{"Duplicate login by player"}
+		return player.InvalidID, errors.LogicError{Message: "Duplicate login by player"}
 	}
 
 	return id, nil
 }
 
 // AddConnected adds a newly connected player to the system
-func (c *Core) AddConnected(id PlayerID, nick string, token AuthToken) {
-	c.players[id] = &Player{ID: id, Nick: nick}
-	c.playerAuthTokens[id] = token
+func (c *Core) AddConnected(ID player.ID, nick string, token net.AuthToken) {
+	c.players[ID] = &player.Player{ID: ID, Nick: nick}
+	c.playerAuthTokens[ID] = token
 }
 
 // IsLoggedIn checks that a player with the given id
 // is active in the system and provided the correct
 // authentication token
-func (c *Core) IsLoggedIn(id PlayerID, token AuthToken) bool {
-	playerToken, ok := c.playerAuthTokens[id]
+func (c *Core) IsLoggedIn(ID player.ID, token net.AuthToken) bool {
+	playerToken, ok := c.playerAuthTokens[ID]
 	return ok && playerToken == token
 }
 
 // IsInMatch checks that a player is in match by
 // comparing the provided WebSocket token with
 // the one stored in the system
-func (c *Core) IsInMatch(id PlayerID, token WebSocketToken) bool {
-	playerToken, ok := c.playerWSTokens[id]
+func (c *Core) IsInMatch(ID player.ID, token net.WebSocketToken) bool {
+	playerToken, ok := c.playerWSTokens[ID]
 	return ok && playerToken == token
 }
 
@@ -69,8 +86,8 @@ func (c *Core) IsInMatch(id PlayerID, token WebSocketToken) bool {
 // identified by id. If the player has not been found
 // in the database, empty string and an appropriate
 // boolean flag are returned
-func (c *Core) GetPlayerNick(id PlayerID) (string, error) {
-	return c.db.GetPlayerNick(id)
+func (c *Core) GetPlayerNick(ID player.ID) (string, error) {
+	return c.db.GetPlayerNick(ID)
 }
 
 // GetMatchlistForJSON returns a transformed matchlist
@@ -96,21 +113,21 @@ func (c *Core) GetMatchlistForJSON() ([]map[string]interface{}, error) {
 
 // GetMatchForJSON returns a serialized version of a
 // match instance with the given ID.
-func (c *Core) GetMatchForJSON(id MatchID) (map[string]interface{}, error) {
-	var match *Match
+func (c *Core) GetMatchForJSON(ID match.ID) (map[string]interface{}, error) {
+	var m *match.Match
 	var ok bool
 
-	if match, ok = c.matches[id]; !ok {
-		return nil, InvalidArgumentError{"Match with ID " + MatchIDToString(id) + " not found"}
+	if m, ok = c.matches[ID]; !ok {
+		return nil, errors.InvalidArgumentError{Message: "Match with ID " + match.IDToString(ID) + " not found"}
 	}
 
-	return c.serializeMatchForJSON(match)
+	return c.serializeMatchForJSON(m)
 }
 
 // serializeMatchForJSON converts a match instance
 // into a form suitable for serialization into JSON
 // and delivery to the client
-func (c *Core) serializeMatchForJSON(match *Match) (map[string]interface{}, error) {
+func (c *Core) serializeMatchForJSON(match *match.Match) (map[string]interface{}, error) {
 	retval := make(map[string]interface{})
 	retval["match_id"] = match.ID
 	retval["match_type"] = match.Type
@@ -120,74 +137,79 @@ func (c *Core) serializeMatchForJSON(match *Match) (map[string]interface{}, erro
 
 // GetLeaderboardForJSON returns a transformed leaderboard
 // associated with the given game type.
-func (c *Core) GetLeaderboardForJSON(gt GameType) (interface{}, error) {
+func (c *Core) GetLeaderboardForJSON(gt match.GameType) (interface{}, error) {
 	return c.db.GetLeaderboard(gt)
 }
 
-// JoinMatch lets a player with id 'pid' join a match 'mid',
-// or create a new match of game type 'gt' if mid = InvalidMatchID.
-// If 'mid' identifies a non-existent match, MatchNotFoundError
+// JoinMatch lets a player with id 'pID' join a match 'mID',
+// or create a new match of game type 'gt' if mID = InvalidMatchID.
+// If 'mID' identifies a non-existent match, MatchNotFoundError
 // is returned
-func (c *Core) JoinMatch(mid MatchID, pid PlayerID, token WebSocketToken, gt GameType) (MatchID, error) {
-	var match *Match
+func (c *Core) JoinMatch(mID match.ID, p player.Player, token net.WebSocketToken, gt match.GameType) (match.ID, error) {
+	var m *match.Match
 	var ok bool
 
-	if mid != InvalidMatchID {
+	if mID != match.InvalidID {
 		// The player wants to join an existing match
-		match, ok = c.matches[mid]
+		m, ok = c.matches[mID]
 		if !ok {
-			return InvalidMatchID, InvalidArgumentError{"Match not found:" + MatchIDToString(mid)}
+			return match.InvalidID, errors.InvalidArgumentError{Message: "Match not found: " + match.IDToString(mID)}
 		}
 
-		match.Add(pid)
+		m.Add(p)
 	} else {
 		// The player wants to create a new match
-		if gt == InvalidGameType {
-			return InvalidMatchID, InvalidArgumentError{"Game type specification required if no match ID defined"}
+		if gt == match.InvalidGameType {
+			return match.InvalidID, errors.InvalidArgumentError{Message: "Game type specification required if no match ID defined"}
 		}
 
-		ids := PlayerIDs{pid}
-		match = NewMatchWithPlayers(gt, ids)
-		c.matches[match.ID] = match
+		pl := player.List{p}
+		var err error
+		if m, err = match.New(gt, pl); err != nil {
+			return match.InvalidID, err
+		}
+
+		c.matches[m.ID] = m
 	}
 
-	c.playerWSTokens[pid] = token
+	c.playerWSTokens[p.ID] = token
 
-	return match.ID, nil
+	return m.ID, nil
 }
 
 // QuitMatch removes a player from the given match.
 // If the match turns out to be empty, it is removed
-// from the match set
-func (c *Core) QuitMatch(mid MatchID, pid PlayerID) error {
+// from the match set as well
+func (c *Core) QuitMatch(mID match.ID, pID player.ID) error {
 
-	match, ok := c.matches[mid]
+	m, ok := c.matches[mID]
 	if !ok {
-		return InvalidArgumentError{"Invalid match ID " + MatchIDToString(mid)}
+		return errors.InvalidArgumentError{Message: "Invalid match ID " + match.IDToString(mID)}
 	}
-	delete(match.Ranks, pid)
-	if len(match.Ranks) == 0 {
-		delete(c.matches, mid)
+
+	delete(m.Ranks, pID)
+	if len(m.Ranks) == 0 {
+		delete(c.matches, mID)
 	}
-	delete(c.playerWSTokens, pid)
+	delete(c.playerWSTokens, pID)
 
 	return nil
 }
 
 // QuitPlayer performs logout procedure, removing
 // the player from the table of connected players
-func (c *Core) QuitPlayer(pid PlayerID) error {
+func (c *Core) QuitPlayer(pID player.ID) error {
 
 	// I know that just attempting to delete the player ID
 	// from the player map wouldn't hurt even if it wasn't
 	// there, but I wanted to indicate that something
 	// is wrong if the logout attempt has been made
 	// without the player being in the system to begin with
-	if _, ok := c.players[pid]; !ok {
-		return InvalidArgumentError{"Player " + PlayerIDToString(pid) + " not connected"}
+	if _, ok := c.players[pID]; !ok {
+		return errors.InvalidArgumentError{Message: "Player " + player.IDToString(pID) + " not connected"}
 	}
 
-	delete(c.players, pid)
+	delete(c.players, pID)
 	return nil
 }
 

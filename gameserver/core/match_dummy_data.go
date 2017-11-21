@@ -2,7 +2,7 @@ package core
 
 func newMatchTable() Matches {
 	matches := []*Match{
-		{
+		/*{
 			ID:   generateMatchID(),
 			Type: DeathMatch,
 			Ranks: PlayerMatchRanks{
@@ -64,7 +64,7 @@ func newMatchTable() Matches {
 					Deaths: 4,
 				},
 			},
-		},
+		},*/
 	}
 
 	// Store the match instances in the map
