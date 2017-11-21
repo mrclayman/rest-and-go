@@ -1,5 +1,7 @@
 package core
 
+// As of now, this data is provided by the database itself
+
 // newPlayerDBTable creates a pre-filled table
 // of players
 /*func newPlayerDBTable() playerTable {

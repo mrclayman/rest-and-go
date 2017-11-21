@@ -1,56 +1,16 @@
 package client
 
-import "strconv"
-
 ////////////////// Constants /////////////////
 const (
-	serverAddress string = "claytestgameserver.azurewebsites.net"
+	// Azure server address
+	//serverAddress string = "claytestgameserver.azurewebsites.net"
+
+	serverAddress = "localhost:8000"
 )
 
 ////////////////// Types ////////////////
 
-// PlayerRank aggregates information on a player's
-// rank in a match
-type PlayerRank struct {
-	PlayerID   int    `json:"player_id"`
-	PlayerName string `json:"player_name"`
-	Kills      uint   `json:"kills"`
-	Deaths     uint   `json:"deaths"`
-}
 
-// PlayerRanks defines a list of players' ranks
-type PlayerRanks []PlayerRank
-
-// Match contains information on a match
-type Match struct {
-	ID    uint64      `json:"match_id"`
-	Type  string      `json:"match_type"`
-	Ranks PlayerRanks `json:"ranks"`
-}
-
-// Matchlist defines a slice of match instances
-type Matchlist []Match
-
-// PlayerAuthData contains information on a player's
-// authentication data returned by the server
-type PlayerAuthData struct {
-	ID    int    `json:"id"`
-	Token string `json:"token"`
-}
-
-// ToGet converts the contents of the
-// PlayerAuthData instance into GET request
-// arguments
-func (data PlayerAuthData) ToGet() string {
-	return "id=" + strconv.Itoa(data.ID) + "&token=" + data.Token
-}
-
-// PlayerLogin contains login information
-// for a player
-type PlayerLogin struct {
-	Nick     string `json:"name"`
-	Password string `json:"password"`
-}
 
 // PlayerLogins is a slice of player
 // login data structures

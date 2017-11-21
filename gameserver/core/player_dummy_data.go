@@ -1,12 +1,17 @@
 package core
 
+import (
+	"github.com/mrclayman/rest-and-go/gameserver/core/auth"
+	"github.com/mrclayman/rest-and-go/gameserver/core/player"
+)
+
 // newConnectedPlayerTable creates a table of
 // connected players
-func newConnectedPlayerTable() Map {
+func newConnectedPlayerTable() player.Map {
 	// The list below corresponds to the complete
 	// list of players already participating in matches
 	// (see function newMatchTable() in match_dummy_data.go)
-	players := []*Player{
+	players := []player.Player{
 		{
 			ID:   8535253,
 			Nick: "fatal1ty",
@@ -45,7 +50,7 @@ func newConnectedPlayerTable() Map {
 		},
 	}
 
-	retval := make(Map, len(players))
+	retval := make(player.Map, len(players))
 	for _, player := range players {
 		retval[player.ID] = player
 	}
@@ -58,15 +63,15 @@ func newConnectedPlayerTable() Map {
 // tokens
 func newConnectedPlayerTokenTable() PlayerAuthTokens {
 	return PlayerAuthTokens{
-		8535253: GenerateAuthenticationToken(),
-		5457676: GenerateAuthenticationToken(),
-		9464779: GenerateAuthenticationToken(),
-		6735772: GenerateAuthenticationToken(),
-		6433858: GenerateAuthenticationToken(),
-		4148994: GenerateAuthenticationToken(),
-		9661327: GenerateAuthenticationToken(),
-		1412491: GenerateAuthenticationToken(),
-		8712722: GenerateAuthenticationToken(),
+		8535253: auth.GenerateAuthenticationToken(),
+		5457676: auth.GenerateAuthenticationToken(),
+		9464779: auth.GenerateAuthenticationToken(),
+		6735772: auth.GenerateAuthenticationToken(),
+		6433858: auth.GenerateAuthenticationToken(),
+		4148994: auth.GenerateAuthenticationToken(),
+		9661327: auth.GenerateAuthenticationToken(),
+		1412491: auth.GenerateAuthenticationToken(),
+		8712722: auth.GenerateAuthenticationToken(),
 	}
 }
 
@@ -74,14 +79,14 @@ func newConnectedPlayerTokenTable() PlayerAuthTokens {
 // WebSocket tokens
 func newPlayerInMatchTokenTable() PlayerWSTokens {
 	return PlayerWSTokens{
-		8535253: GenerateWebSocketToken(),
-		5457676: GenerateWebSocketToken(),
-		9464779: GenerateWebSocketToken(),
-		6735772: GenerateWebSocketToken(),
-		6433858: GenerateWebSocketToken(),
-		4148994: GenerateWebSocketToken(),
-		9661327: GenerateWebSocketToken(),
-		1412491: GenerateWebSocketToken(),
-		8712722: GenerateWebSocketToken(),
+		8535253: auth.GenerateWebSocketToken(),
+		5457676: auth.GenerateWebSocketToken(),
+		9464779: auth.GenerateWebSocketToken(),
+		6735772: auth.GenerateWebSocketToken(),
+		6433858: auth.GenerateWebSocketToken(),
+		4148994: auth.GenerateWebSocketToken(),
+		9661327: auth.GenerateWebSocketToken(),
+		1412491: auth.GenerateWebSocketToken(),
+		8712722: auth.GenerateWebSocketToken(),
 	}
 }

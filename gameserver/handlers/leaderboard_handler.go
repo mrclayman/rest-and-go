@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/mrclayman/rest-and-go/gameserver/core"
+	"github.com/mrclayman/rest-and-go/gameserver/core/match"
 )
 
 // LeaderboardHandler handles requests for
@@ -49,7 +50,7 @@ func (h *LeaderboardHandler) ProcessRequest(resp http.ResponseWriter, req *http.
 	// from the rest of the path and analyze it
 	var strGameType string
 	strGameType, req.URL.Path = SplitPath(req.URL.Path)
-	gameType, ok := core.IsValidGameType(strGameType)
+	gameType, ok := match.IsValidGameType(strGameType)
 	if !ok {
 		log.Printf("Invalid game type specified in leaderboard request of player %v", playerID)
 		http.Error(resp, "Invalid game type specified", http.StatusBadRequest)

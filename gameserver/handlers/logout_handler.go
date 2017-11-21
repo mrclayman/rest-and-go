@@ -5,11 +5,13 @@ import (
 	"net/http"
 
 	"github.com/mrclayman/rest-and-go/gameserver/core"
+	"github.com/mrclayman/rest-and-go/gameserver/core/auth"
+	"github.com/mrclayman/rest-and-go/gameserver/core/player"
 )
 
 type logoutRequest struct {
-	PlayerID core.PlayerID  `json:"id"`
-	Token    core.AuthToken `json:"token"`
+	ID    player.ID      `json:"id"`
+	Token auth.AuthToken `json:"token"`
 }
 
 // LogoutHandler handles logout requests from players
@@ -43,19 +45,19 @@ func (h *LogoutHandler) ProcessRequest(resp http.ResponseWriter, req *http.Reque
 		log.Println("Failed to parse logout request body: " + err.Error())
 		http.Error(resp, "Failed to parse request body: "+err.Error(), http.StatusBadRequest)
 		return
-	} else if !h.core.IsLoggedIn(logout.PlayerID, logout.Token) {
-		log.Printf("Failed to authenticate token of player %v\n", logout.PlayerID)
+	} else if !h.core.IsLoggedIn(logout.ID, logout.Token) {
+		log.Printf("Failed to authenticate token of player %v\n", logout.ID)
 		http.Error(resp, "Failed to authenticate player's token", http.StatusUnauthorized)
 		return
 	}
 
 	// Perform the logout procedure
-	if err := h.core.QuitPlayer(logout.PlayerID); err != nil {
+	if err := h.core.QuitPlayer(logout.ID); err != nil {
 		log.Println("Could not log out the player: " + err.Error())
 		http.Error(resp, err.Error(), http.StatusBadRequest)
 		return
 	}
 
 	WriteJSONToResponse(resp, nil)
-	log.Printf("Player %v logged out of the system\n", logout.PlayerID)
+	log.Printf("Player %v logged out of the system\n", logout.ID)
 }

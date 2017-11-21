@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/mrclayman/rest-and-go/gameserver/core"
+	"github.com/mrclayman/rest-and-go/gameserver/core/auth"
 )
 
 // login provides the storage
@@ -59,7 +60,7 @@ func (h *LoginHandler) ProcessRequest(resp http.ResponseWriter, req *http.Reques
 
 	// Success, generate a token for the player and add them
 	log.Printf("Registering player '%v' (id %v) in the system", credent.Name, id)
-	token := core.GenerateAuthenticationToken()
+	token := auth.GenerateAuthenticationToken()
 	h.core.AddConnected(id, credent.Name, token)
 
 	// Dispatch the response to the player

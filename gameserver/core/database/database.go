@@ -9,6 +9,12 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+const (
+	// errNotFound is issued by MongoDB in case a document
+	// could not be found in the database collection
+	errNotFound string = "not found"
+)
+
 // Database holds the session object to
 // the database system and also a few
 // auxiliary pieces of information (the
@@ -35,14 +41,15 @@ func (db *Database) AuthenticatePlayer(login, password string) (player.ID, error
 	r := make(map[string]interface{})
 
 	if err := q.One(r); err != nil {
+		if err.Error() == errNotFound {
+			return player.ID(0), errors.InvalidArgumentError{Message: "Wrong player nickname or password"}
+		}
 		return player.ID(0), errors.DatabaseError{Message: err.Error()}
 	} else if errMsg := isError(r); errMsg != "" {
 		return player.ID(0), errors.DatabaseError{Message: errMsg}
-	} else if len(r) == 0 {
-		return player.ID(0), errors.InvalidArgumentError{Message: "Wrong player nickname or password"}
 	}
 
-	return r["id"].(player.ID), nil
+	return player.ID(r["id"].(int)), nil
 }
 
 // GetLeaderboard returns the leaderboard

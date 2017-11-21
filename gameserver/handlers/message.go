@@ -1,6 +1,10 @@
 package handlers
 
-import "github.com/mrclayman/rest-and-go/gameserver/core"
+import (
+	"github.com/mrclayman/rest-and-go/gameserver/core/auth"
+	"github.com/mrclayman/rest-and-go/gameserver/core/match"
+	"github.com/mrclayman/rest-and-go/gameserver/core/player"
+)
 
 // MessageID identifies an incoming message on the
 // WebSocket interface
@@ -49,8 +53,8 @@ func isValidMessageID(mid MessageID) bool {
 // WebSocket interface
 type Message struct {
 	MsgID    MessageID           `json:"message_id"`
-	MatchID  core.MatchID        `json:"match_id"`
-	PlayerID core.PlayerID       `json:"player_id"`
-	Token    core.WebSocketToken `json:"token"`
+	MatchID  match.ID            `json:"match_id"`
+	PlayerID player.ID           `json:"player_id"`
+	Token    auth.WebSocketToken `json:"token"`
 	Data     interface{}         `json:"data"`
 }

@@ -7,7 +7,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/mrclayman/rest-and-go/gameserver/core"
+	"github.com/mrclayman/rest-and-go/gameserver/core/auth"
+	"github.com/mrclayman/rest-and-go/gameserver/core/player"
 )
 
 // SplitPath splits off the first component of p, which will be cleaned of
@@ -81,25 +82,27 @@ func getValueFromGET(req *http.Request, name string) (string, bool) {
 // data from a GET request. The method does not check that the
 // request is indeed a GET request and it also assumes the GET
 // arguments have already been parsed using a call to ParseForm()
-func GetPlayerDataFromGET(req *http.Request) (core.PlayerID, core.AuthToken, error) {
-	playerID := core.InvalidPlayerID
-	token := core.InvalidAuthToken
+func GetPlayerDataFromGET(req *http.Request) (player.ID, auth.AuthToken, error) {
+	ID := player.InvalidID
+	token := auth.InvalidAuthToken
 	var err error
 
 	if strPlayerID, ok := getValueFromGET(req, "id"); !ok {
-		return core.InvalidPlayerID, core.InvalidAuthToken,
+		return player.InvalidID, auth.InvalidAuthToken,
 			RequestError{"Failed to obtain player ID from request"}
-	} else if playerID, err = core.StringToPlayerID(strPlayerID); err != nil {
-		return core.InvalidPlayerID, core.InvalidAuthToken,
+	} else if ID, err = player.StringToID(strPlayerID); err != nil {
+		return player.InvalidID, auth.InvalidAuthToken,
 			RequestError{"Failed to convert argument to player ID"}
 	}
 
-	if strToken, ok := getValueFromGET(req, "token"); !ok {
-		return core.InvalidPlayerID, core.InvalidAuthToken,
+	var strToken string
+	var ok bool
+	if strToken, ok = getValueFromGET(req, "token"); !ok {
+		return player.InvalidID, auth.InvalidAuthToken,
 			RequestError{"Failed to obtain player's authentication token from request"}
-	} else {
-		token = core.StringToAuthToken(strToken)
 	}
 
-	return playerID, token, nil
+	token = auth.StringToAuthToken(strToken)
+
+	return ID, token, nil
 }

@@ -25,4 +25,4 @@ type List []Player
 
 // Map represents a map of player entities,
 // i.e. players connected to the server
-type Map map[ID]*Player
+type Map map[ID]Player

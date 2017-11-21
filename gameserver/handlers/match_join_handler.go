@@ -5,6 +5,9 @@ import (
 	"net/http"
 
 	"github.com/mrclayman/rest-and-go/gameserver/core"
+	"github.com/mrclayman/rest-and-go/gameserver/core/auth"
+	"github.com/mrclayman/rest-and-go/gameserver/core/match"
+	"github.com/mrclayman/rest-and-go/gameserver/core/player"
 )
 
 // joinRequest aggregates all the information
@@ -12,10 +15,10 @@ import (
 // existing match or create a new one based
 // on the desired game type
 type joinRequest struct {
-	PlayerID core.PlayerID  `json:"player_id"`
-	Token    core.AuthToken `json:"token"`
-	MatchID  core.MatchID   `json:"match_id"`
-	GType    core.GameType  `json:"game_type"`
+	PlayerID player.ID      `json:"player_id"`
+	Token    auth.AuthToken `json:"token"`
+	MatchID  match.ID       `json:"match_id"`
+	GType    match.GameType `json:"game_type"`
 }
 
 // MatchJoinHandler handles requests to join
@@ -56,7 +59,7 @@ func (h *MatchJoinHandler) ProcessRequest(resp http.ResponseWriter, req *http.Re
 
 	// Generate WebSocket token and add the player
 	// to the match, or create a new match if necessary
-	wsToken := core.GenerateWebSocketToken()
+	wsToken := auth.GenerateWebSocketToken()
 	if join.MatchID, err = h.core.JoinMatch(join.MatchID, join.PlayerID, wsToken, join.GType); err != nil {
 		log.Println(err.Error())
 		http.Error(resp, err.Error(), http.StatusBadRequest)

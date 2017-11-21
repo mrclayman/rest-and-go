@@ -1,20 +1,20 @@
 package core
 
 import (
+	"github.com/mrclayman/rest-and-go/gameserver/core/auth"
 	"github.com/mrclayman/rest-and-go/gameserver/core/database"
 	"github.com/mrclayman/rest-and-go/gameserver/core/errors"
 	"github.com/mrclayman/rest-and-go/gameserver/core/match"
-	"github.com/mrclayman/rest-and-go/gameserver/core/net"
 	"github.com/mrclayman/rest-and-go/gameserver/core/player"
 )
 
 // PlayerAuthTokens aggregates authentication
 // tokens of connected players
-type PlayerAuthTokens map[player.ID]net.AuthToken
+type PlayerAuthTokens map[player.ID]auth.AuthToken
 
 // PlayerWSTokens aggregates WebSocket tokens
 // of players participating in matches
-type PlayerWSTokens map[player.ID]net.WebSocketToken
+type PlayerWSTokens map[player.ID]auth.WebSocketToken
 
 // Core is the data core of the application. Its members
 // are accessible to HTTP request handlers to provide the
@@ -61,15 +61,15 @@ func (c *Core) AuthenticatePlayer(name, pass string) (player.ID, error) {
 }
 
 // AddConnected adds a newly connected player to the system
-func (c *Core) AddConnected(ID player.ID, nick string, token net.AuthToken) {
-	c.players[ID] = &player.Player{ID: ID, Nick: nick}
+func (c *Core) AddConnected(ID player.ID, nick string, token auth.AuthToken) {
+	c.players[ID] = player.Player{ID: ID, Nick: nick}
 	c.playerAuthTokens[ID] = token
 }
 
 // IsLoggedIn checks that a player with the given id
 // is active in the system and provided the correct
 // authentication token
-func (c *Core) IsLoggedIn(ID player.ID, token net.AuthToken) bool {
+func (c *Core) IsLoggedIn(ID player.ID, token auth.AuthToken) bool {
 	playerToken, ok := c.playerAuthTokens[ID]
 	return ok && playerToken == token
 }
@@ -77,7 +77,7 @@ func (c *Core) IsLoggedIn(ID player.ID, token net.AuthToken) bool {
 // IsInMatch checks that a player is in match by
 // comparing the provided WebSocket token with
 // the one stored in the system
-func (c *Core) IsInMatch(ID player.ID, token net.WebSocketToken) bool {
+func (c *Core) IsInMatch(ID player.ID, token auth.WebSocketToken) bool {
 	playerToken, ok := c.playerWSTokens[ID]
 	return ok && playerToken == token
 }
@@ -88,6 +88,20 @@ func (c *Core) IsInMatch(ID player.ID, token net.WebSocketToken) bool {
 // boolean flag are returned
 func (c *Core) GetPlayerNick(ID player.ID) (string, error) {
 	return c.db.GetPlayerNick(ID)
+}
+
+// GetActivePlayer looks into the registry of
+// connected player and tries to find the entry
+// corresponding to the ID provided in the argument
+func (c *Core) GetActivePlayer(ID player.ID) (player.Player, error) {
+	var p player.Player
+	var ok bool
+
+	if p, ok = c.players[ID]; !ok {
+		return player.Player{}, errors.InvalidArgumentError{Message: "Player with ID " + player.IDToString(ID) + " does not appear to be connected"}
+	}
+
+	return p, nil
 }
 
 // GetMatchlistForJSON returns a transformed matchlist
@@ -145,9 +159,16 @@ func (c *Core) GetLeaderboardForJSON(gt match.GameType) (interface{}, error) {
 // or create a new match of game type 'gt' if mID = InvalidMatchID.
 // If 'mID' identifies a non-existent match, MatchNotFoundError
 // is returned
-func (c *Core) JoinMatch(mID match.ID, p player.Player, token net.WebSocketToken, gt match.GameType) (match.ID, error) {
+func (c *Core) JoinMatch(mID match.ID, pID player.ID, token auth.WebSocketToken, gt match.GameType) (match.ID, error) {
 	var m *match.Match
 	var ok bool
+
+	var p player.Player
+	var err error
+
+	if p, err = c.GetActivePlayer(pID); err != nil {
+		return match.InvalidID, err
+	}
 
 	if mID != match.InvalidID {
 		// The player wants to join an existing match

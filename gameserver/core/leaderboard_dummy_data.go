@@ -1,5 +1,7 @@
 package core
 
+// As of now, this data is provided by the database
+
 // newLeaderboardTables generates a pre-filled
 // map of leaderboard tables, one for each
 // game type

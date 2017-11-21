@@ -9,8 +9,9 @@ import (
 	"github.com/mrclayman/rest-and-go/gameserver/core/player"
 )
 
-// Generates a random match ID
-func generateID() ID {
+// GenerateID generates a random match ID
+// TODO Hide once the dummy data used in the server are no longer needed
+func GenerateID() ID {
 	return ID(rand.Uint64())
 }
 
@@ -23,7 +24,7 @@ func IDToString(ID ID) string {
 // New creates a new match and populates
 // it with the given set of players
 func New(gt GameType, pl player.List) (*Match, error) {
-	ID := generateID()
+	ID := GenerateID()
 	ranks := make(PlayerRanks)
 
 	for _, p := range pl {

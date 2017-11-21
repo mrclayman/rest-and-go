@@ -7,6 +7,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/mrclayman/rest-and-go/gameserver/core"
+	"github.com/mrclayman/rest-and-go/gameserver/core/auth"
 )
 
 // MatchRoomHandler handles WebSocket requests
@@ -59,7 +60,7 @@ func (h *MatchRoomHandler) handleWebSockConnection(conn *websocket.Conn) error {
 		if !isValidMessageID(msg.MsgID) {
 			log.Printf("WS message has unknown id %v", msg.MsgID)
 			return RequestError{"Invalid WS message id"}
-		} else if msg.Token == core.InvalidWebSocketToken {
+		} else if msg.Token == auth.InvalidWebSocketToken {
 			log.Println("Invalid WS token provided by player")
 			return RequestError{"Invalid WS token"}
 		} else if !h.core.IsInMatch(msg.PlayerID, msg.Token) {
