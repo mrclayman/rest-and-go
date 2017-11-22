@@ -22,7 +22,7 @@ type PlayerWSTokens map[player.ID]auth.WebSocketToken
 type Core struct {
 	db               *database.Database
 	players          player.Map
-	matches          match.Matches
+	matches          match.Registry
 	playerAuthTokens PlayerAuthTokens
 	playerWSTokens   PlayerWSTokens
 }

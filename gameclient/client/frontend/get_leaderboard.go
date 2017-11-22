@@ -11,22 +11,22 @@ func isValidGameType(gt string) (string, bool) {
 
 	switch gt {
 	case "deathmatch":
-		return "dm", true
+		return DeathMatch, true
 	case "capture_the_flag":
 		fallthrough
 	case "capture the flag":
-		return "ctf", true
+		return CaptureTheFlag, true
 	case "last_man_standing":
 		fallthrough
 	case "last man standing":
-		return "lms", true
-	case "dm":
+		return LastManStanding, true
+	case DeathMatch:
 		fallthrough
-	case "ctf":
+	case CaptureTheFlag:
 		fallthrough
-	case "lms":
+	case LastManStanding:
 		fallthrough
-	case "duel":
+	case Duel:
 		return gt, true
 	default:
 		return "", false

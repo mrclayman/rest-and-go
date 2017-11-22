@@ -1,4 +1,21 @@
-package client
+package match
+
+const (
+	// DeathMatch indicates the match is of
+	// type  "Deathmatch"
+	DeathMatch string = "dm"
+
+	// CaptureTheFlag indicates the match is
+	// of type "Capture the Flag"
+	CaptureTheFlag string = "ctf"
+
+	// LastManStanding indicates the match is
+	// of type "Last Man Standing"
+	LastManStanding string = "lms"
+
+	// Duel indicates the match is of type "Duel"
+	Duel string = "duel"
+)
 
 // DMMatch contains information on a
 // DeathMatch type match
@@ -30,8 +47,3 @@ type DuelMatch LMSMatch
 
 // Matchlist defines a slice of match instances
 type Matchlist []interface{}
-
-// unmarshalMatchlist
-func unmarshalMatchlist(in []map[string]interface{}) Matchlist {
-
-}
