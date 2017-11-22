@@ -105,47 +105,36 @@ func (c *Core) GetActivePlayer(ID player.ID) (player.Player, error) {
 }
 
 // GetMatchlistForJSON returns a transformed matchlist
-// suitable for presentation to the client. I could
-// just pass the whole structure to the JSON marshaller
-// but I wanted to present the player with the other
-// players' nicknames (those are not stored along with the
-// players' match ranks) and not just their id's
-func (c *Core) GetMatchlistForJSON() ([]map[string]interface{}, error) {
-	retval := make([]map[string]interface{}, len(c.matches))
-	i := 0
-	for _, match := range c.matches {
-		jsonMatch, err := c.serializeMatchForJSON(match)
-		if err != nil {
-			return nil, err
-		}
-		retval[i] = jsonMatch
-		i++
-	}
+// suitable for presentation to the client.
+func (c *Core) GetMatchlistForJSON() map[match.GameType]interface{} {
+	retval := make(map[match.GameType]interface{})
 
-	return retval, nil
+	retval[match.DeathMatch] = c.matches.GetAllDM()
+	retval[match.CaptureTheFlag] = c.matches.GetAllCTF()
+	retval[match.LastManStanding] = c.matches.GetAllLMS()
+	retval[match.Duel] = c.matches.GetAllDuel()
+	return retval
 }
 
 // GetMatchForJSON returns a serialized version of a
 // match instance with the given ID.
-func (c *Core) GetMatchForJSON(ID match.ID) (map[string]interface{}, error) {
-	var m *match.Match
-	var ok bool
-
-	if m, ok = c.matches[ID]; !ok {
-		return nil, errors.InvalidArgumentError{Message: "Match with ID " + match.IDToString(ID) + " not found"}
+func (c *Core) GetMatchForJSON(ID match.ID) (interface{}, error) {
+	var retval interface{}
+	var err error
+	switch ID.Type {
+	case match.DeathMatch:
+		retval, err = c.matches.GetDM(ID.Number)
+	case match.CaptureTheFlag:
+		retval, err = c.matches.GetCTF(ID.Number)
+	case match.LastManStanding:
+		retval, err = c.matches.GetLMS(ID.Number)
+	case match.Duel:
+		retval, err = c.matches.GetDuel(ID.Number)
+	}
+	if err != nil {
+		return nil, err
 	}
 
-	return c.serializeMatchForJSON(m)
-}
-
-// serializeMatchForJSON converts a match instance
-// into a form suitable for serialization into JSON
-// and delivery to the client
-func (c *Core) serializeMatchForJSON(match *match.Match) (map[string]interface{}, error) {
-	retval := make(map[string]interface{})
-	retval["match_id"] = match.ID
-	retval["match_type"] = match.Type
-	retval["ranks"] = match.Ranks
 	return retval, nil
 }
 
@@ -159,6 +148,7 @@ func (c *Core) GetLeaderboardForJSON(gt match.GameType) (interface{}, error) {
 // or create a new match of game type 'gt' if mID = InvalidMatchID.
 // If 'mID' identifies a non-existent match, MatchNotFoundError
 // is returned
+// TODO Continue here!!
 func (c *Core) JoinMatch(mID match.ID, pID player.ID, token auth.WebSocketToken, gt match.GameType) (match.ID, error) {
 	var m *match.Match
 	var ok bool

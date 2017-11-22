@@ -17,7 +17,7 @@ type DuelRanks map[player.ID]*DuelRankRecord
 // DuelMatch defines the structure for
 // a DeathMatch-type match
 type DuelMatch struct {
-	ID    ID        `json:"match"`
+	ID    Number    `json:"match_id"`
 	Ranks DuelRanks `json:"ranks"`
 }
 
@@ -48,23 +48,6 @@ func (m *DuelMatch) Remove(ID player.ID) bool {
 	return true
 }
 
-// DuelMatches defines the ID-keyed
+// DuelMatches defines the number-keyed
 // storage for active DeathMatch matches
-type DuelMatches map[ID]*DuelMatch
-
-// NewDuel creates a new match and populates
-// it with the given set of players
-func NewDuel(pl player.List) *DuelMatch {
-	m := &DuelMatch{
-		ID: ID{
-			Number: GenerateNumber(),
-			Type:   Duel,
-		},
-	}
-
-	for _, p := range pl {
-		m.Add(p)
-	}
-
-	return m
-}
+type DuelMatches map[Number]*DuelMatch

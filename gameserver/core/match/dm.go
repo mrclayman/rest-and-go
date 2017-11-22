@@ -19,7 +19,7 @@ type DMRanks map[player.ID]*DMRankRecord
 // DMMatch defines the structure for
 // a DeathMatch-type match
 type DMMatch struct {
-	ID    ID      `json:"match"`
+	ID    Number  `json:"match_id"`
 	Ranks DMRanks `json:"ranks"`
 }
 
@@ -50,23 +50,6 @@ func (m *DMMatch) Remove(ID player.ID) bool {
 	return true
 }
 
-// DMMatches defines the ID-keyed
+// DMMatches defines the number-keyed
 // storage for active DeathMatch matches
-type DMMatches map[ID]*DMMatch
-
-// NewDM creates a new match and populates
-// it with the given set of players
-func NewDM(pl player.List) *DMMatch {
-	m := &DMMatch{
-		ID: ID{
-			Number: GenerateNumber(),
-			Type:   DeathMatch,
-		},
-	}
-
-	for _, p := range pl {
-		m.Add(p)
-	}
-
-	return m
-}
+type DMMatches map[Number]*DMMatch

@@ -18,7 +18,7 @@ type CTFRanks map[player.ID]*CTFRankRecord
 // CTFMatch defines the structure for
 // a DeathMatch-type match
 type CTFMatch struct {
-	ID    ID       `json:"match"`
+	ID    Number   `json:"match_id"`
 	Ranks CTFRanks `json:"ranks"`
 }
 
@@ -49,23 +49,8 @@ func (m *CTFMatch) Remove(ID player.ID) bool {
 	return true
 }
 
-// CTFMatches defines the ID-keyed
+// CTFMatches defines the number-keyed
 // storage for active DeathMatch matches
-type CTFMatches map[ID]*CTFMatch
+type CTFMatches map[Number]*CTFMatch
 
-// NewCTF creates a new match and populates
-// it with the given set of players
-func NewCTF(pl player.List) *CTFMatch {
-	m := &CTFMatch{
-		ID: ID{
-			Number: GenerateNumber(),
-			Type:   CaptureTheFlag,
-		},
-	}
 
-	for _, p := range pl {
-		m.Add(p)
-	}
-
-	return m
-}

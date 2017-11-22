@@ -17,7 +17,7 @@ type LMSRanks map[player.ID]*LMSRankRecord
 // LMSMatch defines the structure for
 // a DeathMatch-type match
 type LMSMatch struct {
-	ID    ID       `json:"match"`
+	ID    Number   `json:"match_id"`
 	Ranks LMSRanks `json:"ranks"`
 }
 
@@ -48,23 +48,7 @@ func (m *LMSMatch) Remove(ID player.ID) bool {
 	return true
 }
 
-// LMSMatches defines the ID-keyed
+// LMSMatches defines the number-keyed
 // storage for active DeathMatch matches
-type LMSMatches map[ID]*LMSMatch
+type LMSMatches map[Number]*LMSMatch
 
-// NewLMS creates a new match and populates
-// it with the given set of players
-func NewLMS(pl player.List) *LMSMatch {
-	m := &LMSMatch{
-		ID: ID{
-			Number: GenerateNumber(),
-			Type:   LastManStanding,
-		},
-	}
-
-	for _, p := range pl {
-		m.Add(p)
-	}
-
-	return m
-}
