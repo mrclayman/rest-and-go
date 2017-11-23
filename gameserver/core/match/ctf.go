@@ -18,7 +18,7 @@ type CTFRanks map[player.ID]*CTFRankRecord
 // CTFMatch defines the structure for
 // a DeathMatch-type match
 type CTFMatch struct {
-	ID    Number   `json:"match_id"`
+	Number    Number   `json:"match_id"`
 	Ranks CTFRanks `json:"ranks"`
 }
 

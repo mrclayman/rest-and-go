@@ -58,6 +58,6 @@ func (h *LogoutHandler) ProcessRequest(resp http.ResponseWriter, req *http.Reque
 		return
 	}
 
-	WriteJSONToResponse(resp, nil)
+	//WriteJSONToResponse(resp, nil)
 	log.Printf("Player %v logged out of the system\n", logout.ID)
 }

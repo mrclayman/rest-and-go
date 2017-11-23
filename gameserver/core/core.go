@@ -38,7 +38,7 @@ func NewCore(dbURL string) (*Core, error) {
 	return &Core{
 		db:               db,                             // Pre-fill the database
 		players:          newConnectedPlayerTable(),      // Pre-fill the connected player table
-		matches:          newMatchTable(),                // Pre-fill the match list
+		matches:          newMatchRegistry(),             // Pre-fill the match list
 		playerAuthTokens: newConnectedPlayerTokenTable(), // Pre-fill the player auth token table
 		playerWSTokens:   newPlayerInMatchTokenTable(),   // Pre-fill the player-in-match token table
 	}, nil
@@ -141,51 +141,142 @@ func (c *Core) GetMatchForJSON(ID match.ID) (interface{}, error) {
 // GetLeaderboardForJSON returns a transformed leaderboard
 // associated with the given game type.
 func (c *Core) GetLeaderboardForJSON(gt match.GameType) (interface{}, error) {
-	return c.db.GetLeaderboard(gt)
+	var retval interface{}
+	var err error
+
+	switch gt {
+	case match.DeathMatch:
+		retval, err = c.db.GetDMLeaderboard()
+	case match.CaptureTheFlag:
+		retval, err = c.db.GetCTFLeaderboard()
+	case match.LastManStanding:
+		retval, err = c.db.GetLMSLeaderboard()
+	case match.Duel:
+		retval, err = c.db.GetDuelLeaderboard()
+	default:
+		err = errors.InvalidArgumentError{Message: "Unhandled game type '" + match.GameTypeToString(gt) + "' in GetLeaderboardForJSON()"}
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	return retval, nil
 }
 
 // JoinMatch lets a player with id 'pID' join a match 'mID',
 // or create a new match of game type 'gt' if mID = InvalidMatchID.
 // If 'mID' identifies a non-existent match, MatchNotFoundError
 // is returned
-// TODO Continue here!!
-func (c *Core) JoinMatch(mID match.ID, pID player.ID, token auth.WebSocketToken, gt match.GameType) (match.ID, error) {
-	var m *match.Match
-	var ok bool
+func (c *Core) JoinMatch(mID match.ID, pID player.ID, token auth.WebSocketToken) (match.Number, error) {
 
 	var p player.Player
 	var err error
-
 	if p, err = c.GetActivePlayer(pID); err != nil {
-		return match.InvalidID, err
+		return match.InvalidNumber, err
 	}
 
-	if mID != match.InvalidID {
-		// The player wants to join an existing match
-		m, ok = c.matches[mID]
-		if !ok {
-			return match.InvalidID, errors.InvalidArgumentError{Message: "Match not found: " + match.IDToString(mID)}
-		}
+	n := match.InvalidNumber
+	switch mID.Type {
+	case match.DeathMatch:
+		n, err = c.joinDMMatch(mID.Number, p)
+	case match.CaptureTheFlag:
+		n, err = c.joinCTFMatch(mID.Number, p)
+	case match.LastManStanding:
+		n, err = c.joinLMSMatch(mID.Number, p)
+	case match.Duel:
+		n, err = c.joinDuelMatch(mID.Number, p)
+	default:
+		err = errors.InvalidArgumentError{Message: "Unhandled game type '" + match.GameTypeToString(mID.Type) + "' in JoinMatch()"}
+	}
 
-		m.Add(p)
-	} else {
-		// The player wants to create a new match
-		if gt == match.InvalidGameType {
-			return match.InvalidID, errors.InvalidArgumentError{Message: "Game type specification required if no match ID defined"}
-		}
-
-		pl := player.List{p}
-		var err error
-		if m, err = match.New(gt, pl); err != nil {
-			return match.InvalidID, err
-		}
-
-		c.matches[m.ID] = m
+	if err != nil {
+		return match.InvalidNumber, err
 	}
 
 	c.playerWSTokens[p.ID] = token
 
-	return m.ID, nil
+	return n, nil
+}
+
+// joinDMMatch either adds the player to an existing match
+// or creates a new one
+func (c *Core) joinDMMatch(n match.Number, p player.Player) (match.Number, error) {
+	var m *match.DMMatch
+	if n != match.InvalidNumber {
+		// The player wants to join an existing match
+		var err error
+		m, err = c.matches.GetDM(n)
+		if err != nil {
+			return match.InvalidNumber, errors.InvalidArgumentError{Message: "DM match not found: " + match.NumberToString(n)}
+		}
+		m.Add(p)
+	} else {
+		// The player wants to create a new match
+		pl := player.List{p}
+		m = c.matches.NewDM(pl)
+	}
+	return m.Number, nil
+}
+
+// joinCTFMatch either adds the player to an existing match
+// or creates a new one
+func (c *Core) joinCTFMatch(n match.Number, p player.Player) (match.Number, error) {
+	var m *match.CTFMatch
+	if n != match.InvalidNumber {
+		// The player wants to join an existing match
+		var err error
+		m, err = c.matches.GetCTF(n)
+		if err != nil {
+			return match.InvalidNumber, errors.InvalidArgumentError{Message: "CTF match not found: " + match.NumberToString(n)}
+		}
+		m.Add(p)
+	} else {
+		// The player wants to create a new match
+		pl := player.List{p}
+		m = c.matches.NewCTF(pl)
+	}
+	return m.Number, nil
+}
+
+// joinLMSMatch either adds the player to an existing match
+// or creates a new one
+func (c *Core) joinLMSMatch(n match.Number, p player.Player) (match.Number, error) {
+	var m *match.LMSMatch
+	if n != match.InvalidNumber {
+		// The player wants to join an existing match
+		var err error
+		m, err = c.matches.GetLMS(n)
+		if err != nil {
+			return match.InvalidNumber, errors.InvalidArgumentError{Message: "LMS match not found: " + match.NumberToString(n)}
+		}
+		m.Add(p)
+	} else {
+		// The player wants to create a new match
+		pl := player.List{p}
+		m = c.matches.NewLMS(pl)
+	}
+	return m.Number, nil
+}
+
+// joinDuelMatch either adds the player to an existing match
+// or creates a new one
+func (c *Core) joinDuelMatch(n match.Number, p player.Player) (match.Number, error) {
+	var m *match.DuelMatch
+	if n != match.InvalidNumber {
+		// The player wants to join an existing match
+		var err error
+		m, err = c.matches.GetDuel(n)
+		if err != nil {
+			return match.InvalidNumber, errors.InvalidArgumentError{Message: "Duel match not found: " + match.NumberToString(n)}
+		}
+		m.Add(p)
+	} else {
+		// The player wants to create a new match
+		pl := player.List{p}
+		m = c.matches.NewDuel(pl)
+	}
+	return m.Number, nil
 }
 
 // QuitMatch removes a player from the given match.
@@ -193,16 +284,110 @@ func (c *Core) JoinMatch(mID match.ID, pID player.ID, token auth.WebSocketToken,
 // from the match set as well
 func (c *Core) QuitMatch(mID match.ID, pID player.ID) error {
 
-	m, ok := c.matches[mID]
-	if !ok {
-		return errors.InvalidArgumentError{Message: "Invalid match ID " + match.IDToString(mID)}
+	var err error
+	switch mID.Type {
+	case match.DeathMatch:
+		err = c.quitDMMatch(mID.Number, pID)
+	case match.CaptureTheFlag:
+		err = c.quitCTFMatch(mID.Number, pID)
+	case match.LastManStanding:
+		err = c.quitLMSMatch(mID.Number, pID)
+	case match.Duel:
+		err = c.quitDuelMatch(mID.Number, pID)
 	}
 
-	delete(m.Ranks, pID)
-	if len(m.Ranks) == 0 {
-		delete(c.matches, mID)
+	if err != nil {
+		return err
 	}
 	delete(c.playerWSTokens, pID)
+
+	return nil
+}
+
+// quitDMMatch removes a player with the given ID
+// from a DeathMatch-type match with the given number
+// In case the match could not be found, an error is raised.
+// If the match ends up being empty after the player's removal
+// it is dropped from the match registry
+func (c *Core) quitDMMatch(n match.Number, pID player.ID) error {
+	m, err := c.matches.GetDM(n)
+	if err != nil {
+		return err
+	}
+
+	if ok := m.Remove(pID); !ok {
+		return errors.InvalidArgumentError{Message: "Player " + player.IDToString(pID) + " not present in match " + match.NumberToString(n)}
+	}
+
+	if len(m.Ranks) == 0 {
+		c.matches.DropDM(m.Number)
+	}
+
+	return nil
+}
+
+// quitCTFMatch removes a player with the given ID
+// from a CTF-type match with the given number
+// In case the match could not be found, an error is raised.
+// If the match ends up being empty after the player's removal
+// it is dropped from the match registry
+func (c *Core) quitCTFMatch(n match.Number, pID player.ID) error {
+	m, err := c.matches.GetCTF(n)
+	if err != nil {
+		return err
+	}
+
+	if ok := m.Remove(pID); !ok {
+		return errors.InvalidArgumentError{Message: "Player " + player.IDToString(pID) + " not present in match " + match.NumberToString(n)}
+	}
+
+	if len(m.Ranks) == 0 {
+		c.matches.DropCTF(m.Number)
+	}
+
+	return nil
+}
+
+// quitLMSMatch removes a player with the given ID
+// from a LMS-type match with the given number
+// In case the match could not be found, an error is raised.
+// If the match ends up being empty after the player's removal
+// it is dropped from the match registry
+func (c *Core) quitLMSMatch(n match.Number, pID player.ID) error {
+	m, err := c.matches.GetLMS(n)
+	if err != nil {
+		return err
+	}
+
+	if ok := m.Remove(pID); !ok {
+		return errors.InvalidArgumentError{Message: "Player " + player.IDToString(pID) + " not present in match " + match.NumberToString(n)}
+	}
+
+	if len(m.Ranks) == 0 {
+		c.matches.DropLMS(m.Number)
+	}
+
+	return nil
+}
+
+// quitDuelMatch removes a player with the given ID
+// from a DeathMatch-type match with the given number
+// In case the match could not be found, an error is raised.
+// If the match ends up being empty after the player's removal
+// it is dropped from the match registry
+func (c *Core) quitDuelMatch(n match.Number, pID player.ID) error {
+	m, err := c.matches.GetDuel(n)
+	if err != nil {
+		return err
+	}
+
+	if ok := m.Remove(pID); !ok {
+		return errors.InvalidArgumentError{Message: "Player " + player.IDToString(pID) + " not present in match " + match.NumberToString(n)}
+	}
+
+	if len(m.Ranks) == 0 {
+		c.matches.DropDuel(m.Number)
+	}
 
 	return nil
 }

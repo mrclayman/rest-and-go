@@ -15,8 +15,8 @@ type IDs []ID
 // a connected client that has been successfully
 // authenticated
 type Player struct {
-	ID   ID     `json:"player_id" bson:"playerid"`
-	Nick string `json:"player_name" bson:"playername"`
+	ID   ID     `json:"id" bson:"id"`
+	Nick string `json:"nick" bson:"nick"`
 }
 
 // List defines a type for a slice

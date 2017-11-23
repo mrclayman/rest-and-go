@@ -19,8 +19,8 @@ type DMRanks map[player.ID]*DMRankRecord
 // DMMatch defines the structure for
 // a DeathMatch-type match
 type DMMatch struct {
-	ID    Number  `json:"match_id"`
-	Ranks DMRanks `json:"ranks"`
+	Number Number  `json:"match_id"`
+	Ranks  DMRanks `json:"ranks"`
 }
 
 // Add adds a player into the match. If the player

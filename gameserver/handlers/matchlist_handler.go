@@ -46,7 +46,7 @@ func (h *MatchlistHandler) ProcessRequest(resp http.ResponseWriter, req *http.Re
 	}
 
 	log.Println("Retrieving match list")
-	matchlist, err := h.core.GetMatchlistForJSON()
+	matchlist := h.core.GetMatchlistForJSON()
 	if err != nil {
 		log.Printf("Could not obtain match list for player %v: %v", playerID, err.Error())
 		http.Error(resp, "Failed to retrieve match list: "+err.Error(), http.StatusInternalServerError)

@@ -6,3 +6,6 @@ type ID struct {
 	Number Number   `json:"id"`
 	Type   GameType `json:"type"`
 }
+
+// InvalidID defines an invalid ID value
+var InvalidID ID

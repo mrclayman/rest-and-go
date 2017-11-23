@@ -8,24 +8,25 @@ import (
 // Registry aggregates ongoing matches
 // of all types
 type Registry struct {
-	dm   DMMatches
-	ctf  CTFMatches
-	lms  LMSMatches
-	duel DuelMatches
+	// TODO Hide the members once the dummy data are no longer needed
+	DM   DMMatches
+	CTF  CTFMatches
+	LMS  LMSMatches
+	Duel DuelMatches
 }
 
 // NewDM creates a new DeathMatch-type match
 // and stores it in the registry
 func (r *Registry) NewDM(pl player.List) *DMMatch {
 	m := &DMMatch{
-		ID: GenerateNumber(),
+		Number: GenerateNumber(),
 	}
 
 	for _, p := range pl {
 		m.Add(p)
 	}
 
-	r.dm[m.ID] = m
+	r.DM[m.Number] = m
 	return m
 }
 
@@ -33,14 +34,14 @@ func (r *Registry) NewDM(pl player.List) *DMMatch {
 // it with the given set of players
 func (r *Registry) NewCTF(pl player.List) *CTFMatch {
 	m := &CTFMatch{
-		ID: GenerateNumber(),
+		Number: GenerateNumber(),
 	}
 
 	for _, p := range pl {
 		m.Add(p)
 	}
 
-	r.ctf[m.ID] = m
+	r.CTF[m.Number] = m
 	return m
 }
 
@@ -48,14 +49,14 @@ func (r *Registry) NewCTF(pl player.List) *CTFMatch {
 // it with the given set of players
 func (r *Registry) NewLMS(pl player.List) *LMSMatch {
 	m := &LMSMatch{
-		ID: GenerateNumber(),
+		Number: GenerateNumber(),
 	}
 
 	for _, p := range pl {
 		m.Add(p)
 	}
 
-	r.lms[m.ID] = m
+	r.LMS[m.Number] = m
 	return m
 }
 
@@ -63,14 +64,14 @@ func (r *Registry) NewLMS(pl player.List) *LMSMatch {
 // it with the given set of players
 func (r *Registry) NewDuel(pl player.List) *DuelMatch {
 	m := &DuelMatch{
-		ID: GenerateNumber(),
+		Number: GenerateNumber(),
 	}
 
 	for _, p := range pl {
 		m.Add(p)
 	}
 
-	r.duel[m.ID] = m
+	r.Duel[m.Number] = m
 	return m
 }
 
@@ -78,8 +79,8 @@ func (r *Registry) NewDuel(pl player.List) *DuelMatch {
 // match registry and returns it, if the number corresponds
 // to an existing match. If the match could not be found,
 // nil is returned and an error is raised
-func (r Registry) GetDM(nr Number) (*DMMatch, error) {
-	m, ok := r.dm[nr]
+func (r *Registry) GetDM(nr Number) (*DMMatch, error) {
+	m, ok := r.DM[nr]
 	if !ok {
 		return nil, errors.InvalidArgumentError{Message: "DM-type match #" + NumberToString(nr) + " not found"}
 	}
@@ -91,8 +92,8 @@ func (r Registry) GetDM(nr Number) (*DMMatch, error) {
 // match registry and returns it, if the number corresponds
 // to an existing match. If the match could not be found,
 // nil is returned and an error is raised
-func (r Registry) GetCTF(nr Number) (*CTFMatch, error) {
-	m, ok := r.ctf[nr]
+func (r *Registry) GetCTF(nr Number) (*CTFMatch, error) {
+	m, ok := r.CTF[nr]
 	if !ok {
 		return nil, errors.InvalidArgumentError{Message: "CTF-type match #" + NumberToString(nr) + " not found"}
 	}
@@ -104,8 +105,8 @@ func (r Registry) GetCTF(nr Number) (*CTFMatch, error) {
 // match registry and returns it, if the number corresponds
 // to an existing match. If the match could not be found,
 // nil is returned and an error is raised
-func (r Registry) GetLMS(nr Number) (*LMSMatch, error) {
-	m, ok := r.lms[nr]
+func (r *Registry) GetLMS(nr Number) (*LMSMatch, error) {
+	m, ok := r.LMS[nr]
 	if !ok {
 		return nil, errors.InvalidArgumentError{Message: "LMS-type match #" + NumberToString(nr) + " not found"}
 	}
@@ -117,8 +118,8 @@ func (r Registry) GetLMS(nr Number) (*LMSMatch, error) {
 // match registry and returns it, if the number corresponds
 // to an existing match. If the match could not be found,
 // nil is returned and an error is raised
-func (r Registry) GetDuel(nr Number) (*DuelMatch, error) {
-	m, ok := r.duel[nr]
+func (r *Registry) GetDuel(nr Number) (*DuelMatch, error) {
+	m, ok := r.Duel[nr]
 	if !ok {
 		return nil, errors.InvalidArgumentError{Message: "Duel-type match #" + NumberToString(nr) + " not found"}
 	}
@@ -132,12 +133,12 @@ func (r Registry) GetDuel(nr Number) (*DuelMatch, error) {
 // case a match with the given ID could not
 // be found
 func (r *Registry) DropDM(ID Number) bool {
-	_, ok := r.dm[ID]
+	_, ok := r.DM[ID]
 	if !ok {
 		return false
 	}
 
-	delete(r.dm, ID)
+	delete(r.DM, ID)
 	return true
 }
 
@@ -147,12 +148,12 @@ func (r *Registry) DropDM(ID Number) bool {
 // case a match with the given ID could not
 // be found
 func (r *Registry) DropCTF(ID Number) bool {
-	_, ok := r.ctf[ID]
+	_, ok := r.CTF[ID]
 	if !ok {
 		return false
 	}
 
-	delete(r.ctf, ID)
+	delete(r.CTF, ID)
 	return true
 }
 
@@ -162,12 +163,12 @@ func (r *Registry) DropCTF(ID Number) bool {
 // case a match with the given ID could not
 // be found
 func (r *Registry) DropLMS(ID Number) bool {
-	_, ok := r.lms[ID]
+	_, ok := r.LMS[ID]
 	if !ok {
 		return false
 	}
 
-	delete(r.lms, ID)
+	delete(r.LMS, ID)
 	return true
 }
 
@@ -177,21 +178,25 @@ func (r *Registry) DropLMS(ID Number) bool {
 // case a match with the given ID could not
 // be found
 func (r *Registry) DropDuel(ID Number) bool {
-	_, ok := r.duel[ID]
+	_, ok := r.Duel[ID]
 	if !ok {
 		return false
 	}
 
-	delete(r.duel, ID)
+	delete(r.Duel, ID)
 	return true
 }
 
 // GetAllDM returns a slice of all existing
 // DeathMatch-type matches
-func (r Registry) GetAllDM() []*DMMatch {
-	retval := make([]*DMMatch, len(r.dm))
+func (r *Registry) GetAllDM() []*DMMatch {
 
-	for _, m := range r.dm {
+	if len(r.DM) == 0 {
+		return make([]*DMMatch, 0)
+	}
+
+	var retval []*DMMatch
+	for _, m := range r.DM {
 		retval = append(retval, m)
 	}
 
@@ -200,10 +205,13 @@ func (r Registry) GetAllDM() []*DMMatch {
 
 // GetAllCTF returns a slice of all existing
 // CTF-type matches
-func (r Registry) GetAllCTF() []*CTFMatch {
-	retval := make([]*CTFMatch, len(r.ctf))
+func (r *Registry) GetAllCTF() []*CTFMatch {
+	if len(r.CTF) == 0 {
+		return make([]*CTFMatch, 0)
+	}
 
-	for _, m := range r.ctf {
+	var retval []*CTFMatch
+	for _, m := range r.CTF {
 		retval = append(retval, m)
 	}
 
@@ -211,11 +219,14 @@ func (r Registry) GetAllCTF() []*CTFMatch {
 }
 
 // GetAllLMS returns a slice of all existing
-// DeathMatch-type matches
-func (r Registry) GetAllLMS() []*LMSMatch {
-	retval := make([]*LMSMatch, len(r.lms))
+// LMS-type matches
+func (r *Registry) GetAllLMS() []*LMSMatch {
+	if len(r.LMS) == 0 {
+		return make([]*LMSMatch, 0)
+	}
 
-	for _, m := range r.lms {
+	var retval []*LMSMatch
+	for _, m := range r.LMS {
 		retval = append(retval, m)
 	}
 
@@ -223,11 +234,14 @@ func (r Registry) GetAllLMS() []*LMSMatch {
 }
 
 // GetAllDuel returns a slice of all existing
-// DeathMatch-type matches
-func (r Registry) GetAllDuel() []*DuelMatch {
-	retval := make([]*DuelMatch, len(r.duel))
+// Duel-type matches
+func (r *Registry) GetAllDuel() []*DuelMatch {
+	if len(r.Duel) == 0 {
+		return make([]*DuelMatch, 0)
+	}
 
-	for _, m := range r.duel {
+	var retval []*DuelMatch
+	for _, m := range r.Duel {
 		retval = append(retval, m)
 	}
 

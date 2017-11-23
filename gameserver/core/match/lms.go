@@ -17,8 +17,8 @@ type LMSRanks map[player.ID]*LMSRankRecord
 // LMSMatch defines the structure for
 // a DeathMatch-type match
 type LMSMatch struct {
-	ID    Number   `json:"match_id"`
-	Ranks LMSRanks `json:"ranks"`
+	Number Number   `json:"match_id"`
+	Ranks  LMSRanks `json:"ranks"`
 }
 
 // Add adds a player into the match. If the player
@@ -51,4 +51,3 @@ func (m *LMSMatch) Remove(ID player.ID) bool {
 // LMSMatches defines the number-keyed
 // storage for active DeathMatch matches
 type LMSMatches map[Number]*LMSMatch
-

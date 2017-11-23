@@ -17,8 +17,8 @@ type DuelRanks map[player.ID]*DuelRankRecord
 // DuelMatch defines the structure for
 // a DeathMatch-type match
 type DuelMatch struct {
-	ID    Number    `json:"match_id"`
-	Ranks DuelRanks `json:"ranks"`
+	Number Number    `json:"match_id"`
+	Ranks  DuelRanks `json:"ranks"`
 }
 
 // Add adds a player into the match. If the player
