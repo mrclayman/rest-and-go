@@ -67,6 +67,12 @@ func createLMSLeaderboard(b *mgo.Bulk, lbData ...data.LMSLeaderboardRecord) {
 	}
 }
 
+func createDuelLeaderboard(b *mgo.Bulk, lbData ...data.DuelLeaderboardRecord) {
+	for _, item := range lbData {
+		b.Insert(item)
+	}
+}
+
 // createCollection creates a collection
 // with the given name in the database
 func createCollection(session *mgo.Session, dbName, colName string, cData interface{}) error {
@@ -82,6 +88,8 @@ func createCollection(session *mgo.Session, dbName, colName string, cData interf
 		createCTFLeaderboard(b, concreteData...)
 	case data.LMSLeaderboardRecords:
 		createLMSLeaderboard(b, concreteData...)
+	case data.DuelLeaderboardRecords:
+		createDuelLeaderboard(b, concreteData...)
 	default:
 		return errors.New("Unhandled type " + reflect.TypeOf(concreteData).Name())
 	}
@@ -129,6 +137,12 @@ func main() {
 
 	fmt.Println("Adding LMS leaderboard data")
 	if err := createCollection(session, ci.Database, "leaderboard_lms", data.LMSLeaderboard); err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
+	fmt.Println("Adding Duel leaderboard data")
+	if err := createCollection(session, ci.Database, "leaderboard_duel", data.DuelLeaderboard); err != nil {
 		fmt.Println(err.Error())
 		return
 	}
