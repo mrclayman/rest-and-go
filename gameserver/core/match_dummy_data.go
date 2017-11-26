@@ -47,11 +47,6 @@ func newMatchRegistry() match.Registry {
 					Kills:  2,
 					Deaths: 4,
 				},
-				4148994: &match.LMSRankRecord{
-					Player: player.Player{ID: 4148994, Nick: "JigSaw"},
-					Kills:  4,
-					Deaths: 0,
-				},
 			},
 		},
 	}
@@ -73,6 +68,19 @@ func newMatchRegistry() match.Registry {
 		},
 	}
 
+	ctfMatchSlice := []*match.CTFMatch{
+		&match.CTFMatch{Number: match.GenerateNumber(),
+			Ranks: match.CTFRanks{
+				4148994: &match.CTFRankRecord{
+					Player:   player.Player{ID: 4148994, Nick: "JigSaw"},
+					Kills:    4,
+					Deaths:   0,
+					Captures: 1,
+				},
+			},
+		},
+	}
+
 	dmMatches := make(match.DMMatches)
 	for _, m := range dmMatchSlice {
 		dmMatches[m.Number] = m
@@ -88,8 +96,14 @@ func newMatchRegistry() match.Registry {
 		duelMatches[m.Number] = m
 	}
 
+	ctfMatches := make(match.CTFMatches)
+	for _, m := range ctfMatchSlice {
+		ctfMatches[m.Number] = m
+	}
+
 	return match.Registry{
 		DM:   dmMatches,
+		CTF:  ctfMatches,
 		LMS:  lmsMatches,
 		Duel: duelMatches,
 	}

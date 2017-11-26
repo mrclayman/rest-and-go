@@ -50,6 +50,20 @@ func (m *DMMatch) Remove(ID player.ID) bool {
 	return true
 }
 
+// newDM creates a new DeathMatch match instance
+func newDM(pl player.List) *DMMatch {
+	m := &DMMatch{
+		Number: GenerateNumber(),
+		Ranks:  make(DMRanks),
+	}
+
+	for _, p := range pl {
+		m.Add(p)
+	}
+
+	return m
+}
+
 // DMMatches defines the number-keyed
 // storage for active DeathMatch matches
 type DMMatches map[Number]*DMMatch

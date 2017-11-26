@@ -1,23 +1,32 @@
 package database
 
-import mgo "gopkg.in/mgo.v2"
+import (
+	"log"
+
+	mgo "gopkg.in/mgo.v2"
+)
 
 // New creates a pre-filled player database
 func New(URL string) (*Database, error) {
-
-	var retval *Database
-
-	if di, err := mgo.ParseURL(URL); err != nil {
+	var err error
+	var di *mgo.DialInfo
+	log.Printf("Parsing database URL")
+	if di, err = mgo.ParseURL(URL); err != nil {
 		return nil, err
-	} else if s, err := mgo.DialWithInfo(di); err != nil {
+	}
+
+	log.Printf("Connecting to database")
+	var s *mgo.Session
+	if s, err = mgo.DialWithInfo(di); err != nil {
 		return nil, err
-	} else {
-		retval = &Database{
-			session:               s,
-			dbName:                di.Database,
-			leaderboardCollPrefix: "leaderboard_",
-			playersCollName:       "players",
-		}
+	}
+
+	log.Printf("Database connected")
+	retval := &Database{
+		session:               s,
+		dbName:                di.Database,
+		leaderboardCollPrefix: "leaderboard_",
+		playersCollName:       "players",
 	}
 
 	return retval, nil

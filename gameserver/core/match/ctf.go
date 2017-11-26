@@ -18,8 +18,8 @@ type CTFRanks map[player.ID]*CTFRankRecord
 // CTFMatch defines the structure for
 // a DeathMatch-type match
 type CTFMatch struct {
-	Number    Number   `json:"match_id"`
-	Ranks CTFRanks `json:"ranks"`
+	Number Number   `json:"match_id"`
+	Ranks  CTFRanks `json:"ranks"`
 }
 
 // Add adds a player into the match. If the player
@@ -49,8 +49,20 @@ func (m *CTFMatch) Remove(ID player.ID) bool {
 	return true
 }
 
+// newCTF creates a new CTF-type match
+func newCTF(pl player.List) *CTFMatch {
+	m := &CTFMatch{
+		Number: GenerateNumber(),
+		Ranks:  make(CTFRanks),
+	}
+
+	for _, p := range pl {
+		m.Add(p)
+	}
+
+	return m
+}
+
 // CTFMatches defines the number-keyed
 // storage for active DeathMatch matches
 type CTFMatches map[Number]*CTFMatch
-
-

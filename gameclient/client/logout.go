@@ -1,15 +1,19 @@
 package client
 
-import "net/http"
-import "encoding/json"
+import (
+	"encoding/json"
+	"net/http"
+
+	"github.com/mrclayman/rest-and-go/gameclient/client/net"
+)
 
 // Logout sends a "quit" message that logs the player out of
 // the server
-func Logout(c *http.Client, auth PlayerAuthData) error {
+func Logout(c *http.Client, ps net.PlayerSession) error {
 
 	logoutMessageData := map[string]interface{}{
-		"id":    auth.ID,
-		"token": auth.Token,
+		"id":    ps.ID,
+		"token": ps.Token,
 	}
 
 	var postData []byte
@@ -18,5 +22,5 @@ func Logout(c *http.Client, auth PlayerAuthData) error {
 		return err
 	}
 
-	return post(c, "/logout", postData, nil)
+	return net.Post(c, "/logout", postData, nil)
 }

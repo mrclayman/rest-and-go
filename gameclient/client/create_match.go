@@ -4,6 +4,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+
+	"github.com/mrclayman/rest-and-go/gameclient/client/match"
+	"github.com/mrclayman/rest-and-go/gameclient/client/net"
 )
 
 func getGameType() string {
@@ -26,13 +29,13 @@ func getGameType() string {
 
 		switch choice {
 		case 1:
-			return "dm"
+			return match.DeathMatch
 		case 2:
-			return "ctf"
+			return match.CaptureTheFlag
 		case 3:
-			return "lms"
+			return match.LastManStanding
 		case 4:
-			return "duel"
+			return match.Duel
 		default:
 			fmt.Print("The value must be in the interval 1 - 4. Enter another number: ")
 		}
@@ -40,15 +43,14 @@ func getGameType() string {
 }
 
 // CreateMatch creates for the player a new match of the given type
-func CreateMatch(c *http.Client, auth PlayerAuthData) error {
+func CreateMatch(c *http.Client, ps net.PlayerSession) error {
 
 	gtype := getGameType()
 
 	createData := map[string]interface{}{
-		"player_id": auth.ID,
-		"token":     auth.Token,
-		"match_id":  0,
-		"game_type": gtype,
+		"player_id": ps.ID,
+		"token":     ps.Token,
+		"match":     match.ID{Number: match.InvalidNumber, Type: gtype},
 	}
 
 	var postData []byte
@@ -57,10 +59,10 @@ func CreateMatch(c *http.Client, auth PlayerAuthData) error {
 		return err
 	}
 
-	var sessionData MatchSessionData
-	if err = post(c, "/match/join", postData, &sessionData); err != nil {
+	var ms net.MatchSession
+	if err = net.Post(c, "/match/join", postData, &ms); err != nil {
 		return err
 	}
 
-	return runMatchLoop(c, auth, sessionData)
+	return runMatchLoop(c, ps, ms)
 }

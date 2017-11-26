@@ -48,6 +48,20 @@ func (m *LMSMatch) Remove(ID player.ID) bool {
 	return true
 }
 
+// newLMS creates a new LMS-type match
+func newLMS(pl player.List) *LMSMatch {
+	m := &LMSMatch{
+		Number: GenerateNumber(),
+		Ranks:  make(LMSRanks),
+	}
+
+	for _, p := range pl {
+		m.Add(p)
+	}
+
+	return m
+}
+
 // LMSMatches defines the number-keyed
 // storage for active DeathMatch matches
 type LMSMatches map[Number]*LMSMatch

@@ -130,6 +130,8 @@ func (c *Core) GetMatchForJSON(ID match.ID) (interface{}, error) {
 		retval, err = c.matches.GetLMS(ID.Number)
 	case match.Duel:
 		retval, err = c.matches.GetDuel(ID.Number)
+	default:
+		err = errors.InvalidArgumentError{Message: "Invalid game type '" + match.GameTypeToString(ID.Type) + "' in GetMatchForJSON"}
 	}
 	if err != nil {
 		return nil, err

@@ -1,41 +1,42 @@
-package client
+package net
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
+
+	"github.com/mrclayman/rest-and-go/gameclient/client/shared"
 )
 
-const restAPIProtocol string = "http://"
-
 func processResponse(resp *http.Response, out interface{}) error {
-	var respData []byte
-	var err error
-
-	respData, err = ioutil.ReadAll(resp.Body)
+	respData, err := ioutil.ReadAll(resp.Body)
+	respDataLen := len(respData)
 	if err != nil {
 		return err
 	} else if resp.StatusCode/100 != 2 {
 		return errors.New(string(respData))
+	} else if respDataLen == 0 {
+		return nil
 	} else if resp.Header.Get("Content-Type") != "application/json" {
 		return errors.New("Unexpected response content type")
 	}
 
 	//fmt.Println(string(respData))
 	if out != nil {
-		err = json.Unmarshal(respData, out)
 		if err != nil {
 			fmt.Println("Failed to unmarshal data:", err.Error())
 		}
 	}
 
+	err = shared.DecodeJSON(respData, out)
 	return err
 }
 
-func post(client *http.Client, endpoint string, data []byte, out interface{}) error {
+// Post sends a POST request to the server, then parses
+// the reply and stores it in the 'out' argument
+func Post(client *http.Client, endpoint string, data []byte, out interface{}) error {
 	resp, err := client.Post(restAPIProtocol+serverAddress+endpoint, "application/json",
 		bytes.NewReader(data))
 	if err != nil {
@@ -47,8 +48,10 @@ func post(client *http.Client, endpoint string, data []byte, out interface{}) er
 	return nil
 }
 
-func get(client *http.Client, endpoint string, auth PlayerAuthData, out interface{}) error {
-	url := restAPIProtocol + serverAddress + endpoint + "?" + auth.ToGet()
+// Get sends a GET request to the server, then parses
+// the reply and stores it in the 'out' argument
+func Get(client *http.Client, endpoint string, ps PlayerSession, out interface{}) error {
+	url := restAPIProtocol + serverAddress + endpoint + "?" + ps.ToGet()
 	resp, err := client.Get(url)
 	if err != nil {
 		return err

@@ -23,6 +23,10 @@ const (
 // IsValidGameType checks that the value of 'gt'
 // is indeed a valid game type designator
 func IsValidGameType(gt string) (GameType, bool) {
+	if len(gt) == 0 {
+		return InvalidGameType, false
+	}
+
 	switch GameType(gt) {
 	case DeathMatch:
 		return DeathMatch, true

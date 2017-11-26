@@ -48,6 +48,20 @@ func (m *DuelMatch) Remove(ID player.ID) bool {
 	return true
 }
 
+// newDuel creates a new Duel-type match
+func newDuel(pl player.List) *DuelMatch {
+	m := &DuelMatch{
+		Number: GenerateNumber(),
+		Ranks:  make(DuelRanks),
+	}
+
+	for _, p := range pl {
+		m.Add(p)
+	}
+
+	return m
+}
+
 // DuelMatches defines the number-keyed
 // storage for active DeathMatch matches
 type DuelMatches map[Number]*DuelMatch

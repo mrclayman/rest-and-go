@@ -18,14 +18,7 @@ type Registry struct {
 // NewDM creates a new DeathMatch-type match
 // and stores it in the registry
 func (r *Registry) NewDM(pl player.List) *DMMatch {
-	m := &DMMatch{
-		Number: GenerateNumber(),
-	}
-
-	for _, p := range pl {
-		m.Add(p)
-	}
-
+	m := newDM(pl)
 	r.DM[m.Number] = m
 	return m
 }
@@ -33,14 +26,7 @@ func (r *Registry) NewDM(pl player.List) *DMMatch {
 // NewCTF creates a new match and populates
 // it with the given set of players
 func (r *Registry) NewCTF(pl player.List) *CTFMatch {
-	m := &CTFMatch{
-		Number: GenerateNumber(),
-	}
-
-	for _, p := range pl {
-		m.Add(p)
-	}
-
+	m := newCTF(pl)
 	r.CTF[m.Number] = m
 	return m
 }
@@ -48,14 +34,7 @@ func (r *Registry) NewCTF(pl player.List) *CTFMatch {
 // NewLMS creates a new match and populates
 // it with the given set of players
 func (r *Registry) NewLMS(pl player.List) *LMSMatch {
-	m := &LMSMatch{
-		Number: GenerateNumber(),
-	}
-
-	for _, p := range pl {
-		m.Add(p)
-	}
-
+	m := newLMS(pl)
 	r.LMS[m.Number] = m
 	return m
 }
@@ -63,14 +42,7 @@ func (r *Registry) NewLMS(pl player.List) *LMSMatch {
 // NewDuel creates a new match and populates
 // it with the given set of players
 func (r *Registry) NewDuel(pl player.List) *DuelMatch {
-	m := &DuelMatch{
-		Number: GenerateNumber(),
-	}
-
-	for _, p := range pl {
-		m.Add(p)
-	}
-
+	m := newDuel(pl)
 	r.Duel[m.Number] = m
 	return m
 }

@@ -1,49 +1,43 @@
 package match
 
-const (
-	// DeathMatch indicates the match is of
-	// type  "Deathmatch"
-	DeathMatch string = "dm"
-
-	// CaptureTheFlag indicates the match is
-	// of type "Capture the Flag"
-	CaptureTheFlag string = "ctf"
-
-	// LastManStanding indicates the match is
-	// of type "Last Man Standing"
-	LastManStanding string = "lms"
-
-	// Duel indicates the match is of type "Duel"
-	Duel string = "duel"
+import (
+	"encoding/json"
+	"errors"
+	"reflect"
+	"strconv"
 )
 
-// DMMatch contains information on a
-// DeathMatch type match
-type DMMatch struct {
-	ID    uint64        `json:"match_id"`
-	Type  string        `json:"match_type"`
-	Ranks DMPlayerRanks `json:"ranks"`
+// Number defines the type that holds
+// the value of the number of the match
+type Number uint64
+
+// InvalidNumber defines the value for
+// an invalid match number
+const InvalidNumber Number = 0
+
+// ID uniquely identifies a match as a
+// combination of number and game type
+type ID struct {
+	Number Number `json:"id"`
+	Type   string `json:"type"`
 }
 
-// CTFMatch contains information on
-// a CTF type match
-type CTFMatch struct {
-	ID    uint64         `json:"match_id"`
-	Type  string         `json:"match_type"`
-	Ranks CTFPlayerRanks `json:"ranks"`
+// IDFromMap retrieves an element with key "match_id"
+// from the map in the argument and verifies that the
+// element's type is an uint64.
+func IDFromMap(m map[string]interface{}) (uint64, error) {
+	if v, ok := m["match_id"]; !ok {
+		return 0, errors.New("Match does not seem to have 'match_id' key")
+	} else if IDNum, ok := v.(json.Number); !ok {
+		return 0, errors.New("Match ID does not seem to be a number, but " + reflect.TypeOf(v).Name())
+	} else {
+		// I have to use ParseUint, because overflows may happen
+		// when Number.Int64() is called on an unsigned value
+		// sent by the server
+		ID, err := strconv.ParseUint(IDNum.String(), 10, 64)
+		if err != nil {
+			return 0, err
+		}
+		return ID, nil
+	}
 }
-
-// LMSMatch contains information on
-// a LMS type match
-type LMSMatch struct {
-	ID    uint64         `json:"match_id"`
-	Type  string         `json:"match_type"`
-	Ranks LMSPlayerRanks `json:"ranks"`
-}
-
-// DuelMatch contains information on
-// a Duel type match
-type DuelMatch LMSMatch
-
-// Matchlist defines a slice of match instances
-type Matchlist []interface{}

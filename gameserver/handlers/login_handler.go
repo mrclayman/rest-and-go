@@ -64,7 +64,7 @@ func (h *LoginHandler) ProcessRequest(resp http.ResponseWriter, req *http.Reques
 	h.core.AddConnected(id, credent.Name, token)
 
 	// Dispatch the response to the player
-	respData := map[string]interface{}{"id": id, "token": token}
+	respData := map[string]interface{}{"player_id": id, "token": token}
 	// TODO Should I check that the response has been serialized correctly?
 	WriteJSONToResponse(resp, respData)
 	log.Printf("Response to login request of player '%v' (id %v) dispatched", credent.Name, id)

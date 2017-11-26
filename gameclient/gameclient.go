@@ -51,7 +51,7 @@ func main() {
 		switch choice {
 		case 1:
 			fmt.Println("Listing matches")
-			err = client.ListMatches(&cl, authData)
+			_, err = client.ListMatches(&cl, authData)
 		case 2:
 			fmt.Println("Getting leaderboards")
 			err = client.GetLeaderboard(&cl, authData)
@@ -71,7 +71,7 @@ func main() {
 		}
 
 		if err != nil {
-			fmt.Println(err.Error())
+			fmt.Println("An error has occurred:", err.Error())
 		}
 	}
 }

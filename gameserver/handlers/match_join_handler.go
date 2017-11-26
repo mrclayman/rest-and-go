@@ -15,10 +15,9 @@ import (
 // existing match or create a new one based
 // on the desired game type
 type joinRequest struct {
-	PlayerID    player.ID      `json:"player_id"`
-	Token       auth.AuthToken `json:"token"`
-	MatchNumber match.Number   `json:"match_id"`
-	GType       match.GameType `json:"game_type"`
+	PlayerID player.ID      `json:"player_id"`
+	Token    auth.AuthToken `json:"token"`
+	Match    match.ID       `json:"match"`
 }
 
 // MatchJoinHandler handles requests to join
@@ -60,16 +59,15 @@ func (h *MatchJoinHandler) ProcessRequest(resp http.ResponseWriter, req *http.Re
 	// Generate WebSocket token and add the player
 	// to the match, or create a new match if necessary
 	wsToken := auth.GenerateWebSocketToken()
-	m := match.ID{Number: join.MatchNumber, Type: join.GType}
-	if join.MatchNumber, err = h.core.JoinMatch(m, join.PlayerID, wsToken); err != nil {
+	if join.Match.Number, err = h.core.JoinMatch(join.Match, join.PlayerID, wsToken); err != nil {
 		log.Println(err.Error())
 		http.Error(resp, err.Error(), http.StatusBadRequest)
 		return
 	}
-	log.Printf("Registered player %v in match %v", join.PlayerID, join.MatchNumber)
+	log.Printf("Registered player %v in match %v", join.PlayerID, join.Match.Number)
 
 	output := map[string]interface{}{
-		"match_id": join.MatchNumber,
+		"match":    join.Match,
 		"ws_token": wsToken,
 	}
 
