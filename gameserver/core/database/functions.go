@@ -7,16 +7,10 @@ import (
 )
 
 // New creates a pre-filled player database
-func New(URL string) (*Database, error) {
-	var err error
-	var di *mgo.DialInfo
-	log.Printf("Parsing database URL")
-	if di, err = mgo.ParseURL(URL); err != nil {
-		return nil, err
-	}
-
+func New(di *mgo.DialInfo) (*Database, error) {
 	log.Printf("Connecting to database")
 	var s *mgo.Session
+	var err error
 	if s, err = mgo.DialWithInfo(di); err != nil {
 		return nil, err
 	}

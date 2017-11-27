@@ -3,6 +3,7 @@ package database
 import (
 	"github.com/mrclayman/rest-and-go/gameserver/core/errors"
 	"github.com/mrclayman/rest-and-go/gameserver/core/player"
+	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -15,12 +16,13 @@ import (
 // do not match, PlayerTypeID(0) and false is returned
 func (db *Database) AuthenticatePlayer(login, password string) (player.ID, error) {
 
+	//log.Println("Verifying player login:", login, ",", password)
 	c := db.session.DB(db.dbName).C(db.playersCollName)
 	q := c.Find(bson.M{"nick": login, "password": password}).Select(bson.M{"id": 1})
 	r := make(map[string]interface{})
 
 	if err := q.One(r); err != nil {
-		if err.Error() == errNotFound {
+		if err == mgo.ErrNotFound {
 			return player.ID(0), errors.InvalidArgumentError{Message: "Wrong player nickname or password"}
 		}
 		return player.ID(0), errors.DatabaseError{Message: err.Error()}

@@ -6,6 +6,7 @@ import (
 	"github.com/mrclayman/rest-and-go/gameserver/core/errors"
 	"github.com/mrclayman/rest-and-go/gameserver/core/match"
 	"github.com/mrclayman/rest-and-go/gameserver/core/player"
+	"gopkg.in/mgo.v2"
 )
 
 // PlayerAuthTokens aggregates authentication
@@ -29,8 +30,8 @@ type Core struct {
 
 // NewCore creates and returns a new core object
 // with pre-filled member structures
-func NewCore(dbURL string) (*Core, error) {
-	db, err := database.New(dbURL)
+func NewCore(di *mgo.DialInfo) (*Core, error) {
+	db, err := database.New(di)
 	if err != nil {
 		return nil, errors.InvalidArgumentError{Message: "Could not connect to database, invalid database URL"}
 	}
