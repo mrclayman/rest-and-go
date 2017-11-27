@@ -3,10 +3,21 @@ package main
 import (
 	"errors"
 	"fmt"
-	"reflect"
 
 	"github.com/mrclayman/rest-and-go/database/data"
 	"gopkg.in/mgo.v2"
+)
+
+const (
+	playerCollection string = "players"
+
+	dmLbCollection string = "leaderboard_dm"
+
+	ctfLbCollection string = "leaderboard_ctf"
+
+	lmsLbCollection string = "leaderboard_lms"
+
+	duelLbCollection string = "leaderboard_duel"
 )
 
 // getServerURL asks the user for the
@@ -79,19 +90,19 @@ func createCollection(session *mgo.Session, dbName, colName string, cData interf
 	c := session.DB(dbName).C(colName)
 	b := c.Bulk()
 
-	switch concreteData := cData.(type) {
-	case data.PlayerRecords:
-		createPlayerCollection(b, concreteData...)
-	case data.DMLeaderboardRecords:
-		createDMLeaderboard(b, concreteData...)
-	case data.CTFLeaderboardRecords:
-		createCTFLeaderboard(b, concreteData...)
-	case data.LMSLeaderboardRecords:
-		createLMSLeaderboard(b, concreteData...)
-	case data.DuelLeaderboardRecords:
-		createDuelLeaderboard(b, concreteData...)
+	switch colName {
+	case playerCollection:
+		createPlayerCollection(b, cData.(data.PlayerRecords)...)
+	case dmLbCollection:
+		createDMLeaderboard(b, cData.(data.DMLeaderboardRecords)...)
+	case ctfLbCollection:
+		createCTFLeaderboard(b, cData.(data.CTFLeaderboardRecords)...)
+	case lmsLbCollection:
+		createLMSLeaderboard(b, cData.(data.LMSLeaderboardRecords)...)
+	case duelLbCollection:
+		createDuelLeaderboard(b, cData.(data.DuelLeaderboardRecords)...)
 	default:
-		return errors.New("Unhandled type " + reflect.TypeOf(concreteData).Name())
+		return errors.New("Unhandled collection name " + colName)
 	}
 
 	if _, err := b.Run(); err != nil {
@@ -99,6 +110,20 @@ func createCollection(session *mgo.Session, dbName, colName string, cData interf
 	}
 	fmt.Println("All OK")
 	return nil
+}
+
+// createPlayerIndex creates an index for the "nick" and "password"
+// items in records of the "players" collection
+// NOTE: Azure indexes all elements of documents automatically
+// so the index is not really necessary when importing data to Azure.
+func createPlayerIndex(s *mgo.Session, dbName string) error {
+	c := s.DB(dbName).C(playerCollection)
+	i := mgo.Index{
+		Key:    []string{"nick", "password"},
+		Unique: true, // Unique index is not supported by Azure
+	}
+
+	return c.EnsureIndex(i)
 }
 
 func main() {
@@ -143,6 +168,12 @@ func main() {
 
 	fmt.Println("Adding Duel leaderboard data")
 	if err := createCollection(session, ci.Database, "leaderboard_duel", data.DuelLeaderboard); err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
+	fmt.Println("Creating index on the player collection")
+	if err := createPlayerIndex(session, ci.Database); err != nil {
 		fmt.Println(err.Error())
 		return
 	}
