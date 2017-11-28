@@ -1,7 +1,7 @@
 package match
 
 import (
-	"github.com/mrclayman/rest-and-go/gameserver/core/errors"
+	"github.com/mrclayman/rest-and-go/gameserver/core/servererrors"
 	"github.com/mrclayman/rest-and-go/gameserver/core/player"
 )
 
@@ -54,7 +54,7 @@ func (r *Registry) NewDuel(pl player.List) *DuelMatch {
 func (r *Registry) GetDM(nr Number) (*DMMatch, error) {
 	m, ok := r.DM[nr]
 	if !ok {
-		return nil, errors.InvalidArgumentError{Message: "DM-type match #" + NumberToString(nr) + " not found"}
+		return nil, servererrors.InvalidArgumentError{Message: "DM-type match #" + NumberToString(nr) + " not found"}
 	}
 
 	return m, nil
@@ -67,7 +67,7 @@ func (r *Registry) GetDM(nr Number) (*DMMatch, error) {
 func (r *Registry) GetCTF(nr Number) (*CTFMatch, error) {
 	m, ok := r.CTF[nr]
 	if !ok {
-		return nil, errors.InvalidArgumentError{Message: "CTF-type match #" + NumberToString(nr) + " not found"}
+		return nil, servererrors.InvalidArgumentError{Message: "CTF-type match #" + NumberToString(nr) + " not found"}
 	}
 
 	return m, nil
@@ -80,7 +80,7 @@ func (r *Registry) GetCTF(nr Number) (*CTFMatch, error) {
 func (r *Registry) GetLMS(nr Number) (*LMSMatch, error) {
 	m, ok := r.LMS[nr]
 	if !ok {
-		return nil, errors.InvalidArgumentError{Message: "LMS-type match #" + NumberToString(nr) + " not found"}
+		return nil, servererrors.InvalidArgumentError{Message: "LMS-type match #" + NumberToString(nr) + " not found"}
 	}
 
 	return m, nil
@@ -93,7 +93,7 @@ func (r *Registry) GetLMS(nr Number) (*LMSMatch, error) {
 func (r *Registry) GetDuel(nr Number) (*DuelMatch, error) {
 	m, ok := r.Duel[nr]
 	if !ok {
-		return nil, errors.InvalidArgumentError{Message: "Duel-type match #" + NumberToString(nr) + " not found"}
+		return nil, servererrors.InvalidArgumentError{Message: "Duel-type match #" + NumberToString(nr) + " not found"}
 	}
 
 	return m, nil

@@ -1,7 +1,7 @@
 package database
 
 import (
-	"github.com/mrclayman/rest-and-go/gameserver/core/errors"
+	"github.com/mrclayman/rest-and-go/gameserver/core/servererrors"
 	"github.com/mrclayman/rest-and-go/gameserver/core/player"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
@@ -23,11 +23,11 @@ func (db *Database) AuthenticatePlayer(login, password string) (player.ID, error
 
 	if err := q.One(r); err != nil {
 		if err == mgo.ErrNotFound {
-			return player.ID(0), errors.InvalidArgumentError{Message: "Wrong player nickname or password"}
+			return player.ID(0), servererrors.InvalidArgumentError{Message: "Wrong player nickname or password"}
 		}
-		return player.ID(0), errors.DatabaseError{Message: err.Error()}
+		return player.ID(0), servererrors.DatabaseError{Message: err.Error()}
 	} else if errMsg := isError(r); errMsg != "" {
-		return player.ID(0), errors.DatabaseError{Message: errMsg}
+		return player.ID(0), servererrors.DatabaseError{Message: errMsg}
 	}
 
 	return player.ID(r["id"].(int)), nil

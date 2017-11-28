@@ -1,4 +1,4 @@
-package errors
+package servererrors
 
 // LogicError indicates an illogical problem
 // occurring within the system

@@ -33,22 +33,21 @@ func createDBDialInfo(URL string) (*mgo.DialInfo, error) {
 
 // createDBDialInfo is used to create mgo.DialInfo object
 // that allows communication over TLS/SSL-secured communication channel
-func createDBDialInfoSSL() (*mgo.DialInfo, error) {
+func createDBDialInfoAzure() (*mgo.DialInfo, error) {
 	//const dbURL string = "mongodb://claytestgameserverdb:Y3IyfX0vFBlqNjyRw4VK8qRge6JxK2x80468XJppzC22KWAhsBcCQ8eHtOb2g6WEpkOHsM52TM2Vf2ObZtZgqA==@/?ssl=true&replicaSet=globaldb"
 
-	di := &mgo.DialInfo{
+	return &mgo.DialInfo{
 		Addrs:          []string{"claytestgameserverdb.documents.azure.com:10255"},
 		Timeout:        time.Duration(10) * time.Second,
 		FailFast:       true,
+		Database:       "testgamedb",
 		ReplicaSetName: "globaldb",
 		Username:       "claytestgameserverdb",
 		Password:       "Y3IyfX0vFBlqNjyRw4VK8qRge6JxK2x80468XJppzC22KWAhsBcCQ8eHtOb2g6WEpkOHsM52TM2Vf2ObZtZgqA==",
 		DialServer: func(addr *mgo.ServerAddr) (net.Conn, error) {
 			return tls.Dial("tcp", addr.String(), &tls.Config{})
 		},
-	}
-
-	return di, nil
+	}, nil
 }
 
 // Application structure binds together all the important
@@ -65,7 +64,7 @@ func (a *application) Cleanup() {
 func main() {
 	rand.Seed(time.Now().UnixNano())
 
-	di, err := createDBDialInfoSSL()
+	di, err := createDBDialInfoAzure()
 	//di, err := createDBDialInfo(localDBURL)
 	if err != nil {
 		log.Fatal("Failed to create dial info: " + err.Error())

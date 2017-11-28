@@ -1,4 +1,4 @@
-package errors
+package servererrors
 
 // DatabaseError indicates an issue
 // with the backend database

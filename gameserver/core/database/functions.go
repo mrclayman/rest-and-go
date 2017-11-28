@@ -3,17 +3,23 @@ package database
 import (
 	"log"
 
-	mgo "gopkg.in/mgo.v2"
+	"github.com/mrclayman/rest-and-go/gameserver/core/servererrors"
+	"gopkg.in/mgo.v2"
 )
 
 // New creates a pre-filled player database
 func New(di *mgo.DialInfo) (*Database, error) {
+	if len(di.Database) == 0 {
+		log.Println("No database name defined")
+		return nil, servererrors.InvalidArgumentError{Message: "No database name defined"}
+	}
 	log.Printf("Connecting to database")
 	var s *mgo.Session
 	var err error
 	if s, err = mgo.DialWithInfo(di); err != nil {
 		return nil, err
 	}
+	//s.SetSafe(&mgo.Safe{})
 
 	log.Printf("Database connected")
 	retval := &Database{

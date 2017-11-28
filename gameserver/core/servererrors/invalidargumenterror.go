@@ -1,4 +1,4 @@
-package errors
+package servererrors
 
 // InvalidArgumentError indicates an
 // invalid input to a function

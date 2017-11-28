@@ -1,4 +1,4 @@
-package errors
+package servererrors
 
 // IntegrityError is used when data integrity
 // violation has been encountered within the server

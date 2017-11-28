@@ -3,7 +3,7 @@ package core
 import (
 	"github.com/mrclayman/rest-and-go/gameserver/core/auth"
 	"github.com/mrclayman/rest-and-go/gameserver/core/database"
-	"github.com/mrclayman/rest-and-go/gameserver/core/errors"
+	"github.com/mrclayman/rest-and-go/gameserver/core/servererrors"
 	"github.com/mrclayman/rest-and-go/gameserver/core/match"
 	"github.com/mrclayman/rest-and-go/gameserver/core/player"
 	"gopkg.in/mgo.v2"
@@ -33,7 +33,7 @@ type Core struct {
 func NewCore(di *mgo.DialInfo) (*Core, error) {
 	db, err := database.New(di)
 	if err != nil {
-		return nil, errors.InvalidArgumentError{Message: "Could not connect to database, invalid database URL"}
+		return nil, servererrors.InvalidArgumentError{Message: "Could not connect to database, invalid database URL"}
 	}
 
 	return &Core{
@@ -55,7 +55,7 @@ func (c *Core) AuthenticatePlayer(name, pass string) (player.ID, error) {
 	if err != nil {
 		return player.InvalidID, err
 	} else if _, ok := c.players[id]; ok {
-		return player.InvalidID, errors.LogicError{Message: "Duplicate login by player"}
+		return player.InvalidID, servererrors.LogicError{Message: "Duplicate login by player"}
 	}
 
 	return id, nil
@@ -99,7 +99,7 @@ func (c *Core) GetActivePlayer(ID player.ID) (player.Player, error) {
 	var ok bool
 
 	if p, ok = c.players[ID]; !ok {
-		return player.Player{}, errors.InvalidArgumentError{Message: "Player with ID " + player.IDToString(ID) + " does not appear to be connected"}
+		return player.Player{}, servererrors.InvalidArgumentError{Message: "Player with ID " + player.IDToString(ID) + " does not appear to be connected"}
 	}
 
 	return p, nil
@@ -132,7 +132,7 @@ func (c *Core) GetMatchForJSON(ID match.ID) (interface{}, error) {
 	case match.Duel:
 		retval, err = c.matches.GetDuel(ID.Number)
 	default:
-		err = errors.InvalidArgumentError{Message: "Invalid game type '" + match.GameTypeToString(ID.Type) + "' in GetMatchForJSON"}
+		err = servererrors.InvalidArgumentError{Message: "Invalid game type '" + match.GameTypeToString(ID.Type) + "' in GetMatchForJSON"}
 	}
 	if err != nil {
 		return nil, err
@@ -157,7 +157,7 @@ func (c *Core) GetLeaderboardForJSON(gt match.GameType) (interface{}, error) {
 	case match.Duel:
 		retval, err = c.db.GetDuelLeaderboard()
 	default:
-		err = errors.InvalidArgumentError{Message: "Unhandled game type '" + match.GameTypeToString(gt) + "' in GetLeaderboardForJSON()"}
+		err = servererrors.InvalidArgumentError{Message: "Unhandled game type '" + match.GameTypeToString(gt) + "' in GetLeaderboardForJSON()"}
 	}
 
 	if err != nil {
@@ -190,7 +190,7 @@ func (c *Core) JoinMatch(mID match.ID, pID player.ID, token auth.WebSocketToken)
 	case match.Duel:
 		n, err = c.joinDuelMatch(mID.Number, p)
 	default:
-		err = errors.InvalidArgumentError{Message: "Unhandled game type '" + match.GameTypeToString(mID.Type) + "' in JoinMatch()"}
+		err = servererrors.InvalidArgumentError{Message: "Unhandled game type '" + match.GameTypeToString(mID.Type) + "' in JoinMatch()"}
 	}
 
 	if err != nil {
@@ -211,7 +211,7 @@ func (c *Core) joinDMMatch(n match.Number, p player.Player) (match.Number, error
 		var err error
 		m, err = c.matches.GetDM(n)
 		if err != nil {
-			return match.InvalidNumber, errors.InvalidArgumentError{Message: "DM match not found: " + match.NumberToString(n)}
+			return match.InvalidNumber, servererrors.InvalidArgumentError{Message: "DM match not found: " + match.NumberToString(n)}
 		}
 		m.Add(p)
 	} else {
@@ -231,7 +231,7 @@ func (c *Core) joinCTFMatch(n match.Number, p player.Player) (match.Number, erro
 		var err error
 		m, err = c.matches.GetCTF(n)
 		if err != nil {
-			return match.InvalidNumber, errors.InvalidArgumentError{Message: "CTF match not found: " + match.NumberToString(n)}
+			return match.InvalidNumber, servererrors.InvalidArgumentError{Message: "CTF match not found: " + match.NumberToString(n)}
 		}
 		m.Add(p)
 	} else {
@@ -251,7 +251,7 @@ func (c *Core) joinLMSMatch(n match.Number, p player.Player) (match.Number, erro
 		var err error
 		m, err = c.matches.GetLMS(n)
 		if err != nil {
-			return match.InvalidNumber, errors.InvalidArgumentError{Message: "LMS match not found: " + match.NumberToString(n)}
+			return match.InvalidNumber, servererrors.InvalidArgumentError{Message: "LMS match not found: " + match.NumberToString(n)}
 		}
 		m.Add(p)
 	} else {
@@ -271,7 +271,7 @@ func (c *Core) joinDuelMatch(n match.Number, p player.Player) (match.Number, err
 		var err error
 		m, err = c.matches.GetDuel(n)
 		if err != nil {
-			return match.InvalidNumber, errors.InvalidArgumentError{Message: "Duel match not found: " + match.NumberToString(n)}
+			return match.InvalidNumber, servererrors.InvalidArgumentError{Message: "Duel match not found: " + match.NumberToString(n)}
 		}
 		m.Add(p)
 	} else {
@@ -319,7 +319,7 @@ func (c *Core) quitDMMatch(n match.Number, pID player.ID) error {
 	}
 
 	if ok := m.Remove(pID); !ok {
-		return errors.InvalidArgumentError{Message: "Player " + player.IDToString(pID) + " not present in match " + match.NumberToString(n)}
+		return servererrors.InvalidArgumentError{Message: "Player " + player.IDToString(pID) + " not present in match " + match.NumberToString(n)}
 	}
 
 	if len(m.Ranks) == 0 {
@@ -341,7 +341,7 @@ func (c *Core) quitCTFMatch(n match.Number, pID player.ID) error {
 	}
 
 	if ok := m.Remove(pID); !ok {
-		return errors.InvalidArgumentError{Message: "Player " + player.IDToString(pID) + " not present in match " + match.NumberToString(n)}
+		return servererrors.InvalidArgumentError{Message: "Player " + player.IDToString(pID) + " not present in match " + match.NumberToString(n)}
 	}
 
 	if len(m.Ranks) == 0 {
@@ -363,7 +363,7 @@ func (c *Core) quitLMSMatch(n match.Number, pID player.ID) error {
 	}
 
 	if ok := m.Remove(pID); !ok {
-		return errors.InvalidArgumentError{Message: "Player " + player.IDToString(pID) + " not present in match " + match.NumberToString(n)}
+		return servererrors.InvalidArgumentError{Message: "Player " + player.IDToString(pID) + " not present in match " + match.NumberToString(n)}
 	}
 
 	if len(m.Ranks) == 0 {
@@ -385,7 +385,7 @@ func (c *Core) quitDuelMatch(n match.Number, pID player.ID) error {
 	}
 
 	if ok := m.Remove(pID); !ok {
-		return errors.InvalidArgumentError{Message: "Player " + player.IDToString(pID) + " not present in match " + match.NumberToString(n)}
+		return servererrors.InvalidArgumentError{Message: "Player " + player.IDToString(pID) + " not present in match " + match.NumberToString(n)}
 	}
 
 	if len(m.Ranks) == 0 {
@@ -405,7 +405,7 @@ func (c *Core) QuitPlayer(pID player.ID) error {
 	// is wrong if the logout attempt has been made
 	// without the player being in the system to begin with
 	if _, ok := c.players[pID]; !ok {
-		return errors.InvalidArgumentError{Message: "Player " + player.IDToString(pID) + " not connected"}
+		return servererrors.InvalidArgumentError{Message: "Player " + player.IDToString(pID) + " not connected"}
 	}
 
 	delete(c.players, pID)
