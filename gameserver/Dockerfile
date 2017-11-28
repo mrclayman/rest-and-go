@@ -1,5 +1,5 @@
 # Use an official Golang runtime as a parent image
-FROM golang:1.9-alpine AS build_stage
+FROM golang:1.9-alpine3.6 AS build_stage
 
 # The base image does not have Git, but we need it
 # to fetch WebSocket library, install it
@@ -7,7 +7,7 @@ RUN apk --no-cache --update add git
 
 # Download all required packages
 # Build will be performed by Go in the following steps
-RUN ["go-wrapper", "download", "github.com/gorilla/websocket"]
+RUN ["go-wrapper", "download", "github.com/gorilla/websocket", "gopkg.in/mgo.v2"]
 
 # Add the source files that will be compiled in the next step
 ADD . ${GOPATH}/src/github.com/mrclayman/rest-and-go/gameserver/
@@ -20,9 +20,10 @@ RUN CGO_ENABLED=0 GOOS=linux go build -a github.com/mrclayman/rest-and-go/gamese
 
 # Using alpine image will let us reduce
 # the final image size dramatically
-FROM alpine:latest AS package_stage
+FROM alpine:3.6 AS package_stage
 
-#RUN apk --no-cache --update add bash
+# RUN apk --no-cache --update add bash
+RUN apk --no-cache --update add ca-certificates
 
 WORKDIR /server
 
@@ -32,4 +33,5 @@ COPY --from=build_stage /go/bin/gameserver .
 EXPOSE 8000
 
 # Run the server when the image is instantiated
-ENTRYPOINT ["./gameserver"]
+CMD ["./gameserver"]
+# CMD [ "/bin/bash" ]

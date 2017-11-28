@@ -1,13 +1,13 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 	"strconv"
 
 	"github.com/gorilla/websocket"
 	"github.com/mrclayman/rest-and-go/gameserver/core"
 	"github.com/mrclayman/rest-and-go/gameserver/core/auth"
+	"github.com/mrclayman/rest-and-go/gameserver/serverlog"
 )
 
 // MatchRoomHandler handles WebSocket requests
@@ -30,12 +30,12 @@ func NewMatchRoomHandler(c *core.Core) *MatchRoomHandler {
 // ProcessRequest processes the WebSocket request
 // from the player and creates an appropriate response
 func (h *MatchRoomHandler) ProcessRequest(resp http.ResponseWriter, req *http.Request) {
-	log.Println("Received match room request, will spawn a separate goroutine to handle communication")
+	serverlog.Logger.Println("Received match room request, will spawn a separate goroutine to handle communication")
 
 	// Obtain the connection object from the request
 	conn, err := h.upgrader.Upgrade(resp, req, nil)
 	if err != nil {
-		log.Printf("Failed to obtain connection object from request: %v", err.Error())
+		serverlog.Logger.Printf("Failed to obtain connection object from request: %v", err.Error())
 		http.Error(resp, "Failed to obtain connection from request: "+err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -53,23 +53,23 @@ func (h *MatchRoomHandler) handleWebSockConnection(conn *websocket.Conn) error {
 		err := conn.ReadJSON(&msg)
 
 		if err != nil {
-			log.Printf("Failed to read message on WS interface: %v", err.Error())
+			serverlog.Logger.Printf("Failed to read message on WS interface: %v", err.Error())
 			return err
 		}
 
 		if !isValidMessageID(msg.MsgID) {
-			log.Printf("WS message has unknown id %v", msg.MsgID)
+			serverlog.Logger.Printf("WS message has unknown id %v", msg.MsgID)
 			return RequestError{"Invalid WS message id"}
 		} else if msg.Token == auth.InvalidWebSocketToken {
-			log.Println("Invalid WS token provided by player")
+			serverlog.Logger.Println("Invalid WS token provided by player")
 			return RequestError{"Invalid WS token"}
 		} else if !h.core.IsInMatch(msg.PlayerID, msg.Token) {
-			log.Printf("Player %v not in match", msg.PlayerID)
+			serverlog.Logger.Printf("Player %v not in match", msg.PlayerID)
 			return RequestError{"Player not registered in match"}
 		}
 
 		// Handle individual messages
-		log.Printf("Received message id %v", msg.MsgID)
+		serverlog.Logger.Printf("Received message id %v", msg.MsgID)
 		switch msg.MsgID {
 		case WeaponFiredMessageID:
 			err = h.handleWeaponFiredMessage(conn, &msg)
@@ -82,18 +82,18 @@ func (h *MatchRoomHandler) handleWebSockConnection(conn *websocket.Conn) error {
 		}
 
 		if err != nil {
-			log.Printf("Terminating communication thread for player %v because of error: %v", msg.PlayerID, err.Error())
+			serverlog.Logger.Printf("Terminating communication thread for player %v because of error: %v", msg.PlayerID, err.Error())
 			return err
 		}
 		if msg.MsgID == QuitMessageID {
-			log.Printf("Terminating communication thread for player %v because of quit", msg.PlayerID)
+			serverlog.Logger.Printf("Terminating communication thread for player %v because of quit", msg.PlayerID)
 			return err
 		}
 	}
 }
 
 func (h *MatchRoomHandler) handleWeaponFiredMessage(conn *websocket.Conn, msg *Message) error {
-	log.Printf("TEST: Player %v fired a weapon", msg.PlayerID)
+	serverlog.Logger.Printf("TEST: Player %v fired a weapon", msg.PlayerID)
 	return conn.WriteJSON(nil)
 }
 
@@ -119,12 +119,12 @@ func (h *MatchRoomHandler) handlePlayerMoveMessage(conn *websocket.Conn, msg *Me
 		position[i] = number
 	}
 
-	log.Printf("TEST: Player moved to position x = %v, y = %v, z = %v\n", position[0], position[1], position[2])
+	serverlog.Logger.Printf("TEST: Player moved to position x = %v, y = %v, z = %v\n", position[0], position[1], position[2])
 	return conn.WriteJSON(nil)
 }
 
 func (h *MatchRoomHandler) handlePlayerListMessage(conn *websocket.Conn, msg *Message) error {
-	log.Printf("TEST: Player %v requested a player list", msg.PlayerID)
+	serverlog.Logger.Printf("TEST: Player %v requested a player list", msg.PlayerID)
 	jsonMatch, err := h.core.GetMatchForJSON(msg.MatchID)
 	if err != nil {
 		return err
@@ -132,15 +132,15 @@ func (h *MatchRoomHandler) handlePlayerListMessage(conn *websocket.Conn, msg *Me
 
 	err = conn.WriteJSON(jsonMatch)
 	if err != nil {
-		log.Println("An error occurred while marshaling JSON player list: " + err.Error())
+		serverlog.Logger.Println("An error occurred while marshaling JSON player list: " + err.Error())
 	} else {
-		log.Printf("Player list response dispatched to player %v", msg.PlayerID)
+		serverlog.Logger.Printf("Player list response dispatched to player %v", msg.PlayerID)
 	}
 	return err
 }
 
 func (h *MatchRoomHandler) handlePlayerQuitMessage(conn *websocket.Conn, msg *Message) error {
-	log.Printf("TEST: Player %v is quitting the match", msg.PlayerID)
+	serverlog.Logger.Printf("TEST: Player %v is quitting the match", msg.PlayerID)
 	if err := h.core.QuitMatch(msg.MatchID, msg.PlayerID); err != nil {
 		return RequestError{err.Error()}
 	}

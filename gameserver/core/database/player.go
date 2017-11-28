@@ -16,7 +16,7 @@ import (
 // do not match, PlayerTypeID(0) and false is returned
 func (db *Database) AuthenticatePlayer(login, password string) (player.ID, error) {
 
-	//log.Println("Verifying player login:", login, ",", password)
+	//serverlog.Logger.Println("Verifying player login:", login, ",", password)
 	c := db.session.DB(db.dbName).C(db.playersCollName)
 	q := c.Find(bson.M{"nick": login, "password": password}).Select(bson.M{"id": 1})
 	r := make(map[string]interface{})

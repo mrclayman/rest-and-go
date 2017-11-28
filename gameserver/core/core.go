@@ -3,9 +3,9 @@ package core
 import (
 	"github.com/mrclayman/rest-and-go/gameserver/core/auth"
 	"github.com/mrclayman/rest-and-go/gameserver/core/database"
-	"github.com/mrclayman/rest-and-go/gameserver/core/servererrors"
 	"github.com/mrclayman/rest-and-go/gameserver/core/match"
 	"github.com/mrclayman/rest-and-go/gameserver/core/player"
+	"github.com/mrclayman/rest-and-go/gameserver/core/servererrors"
 	"gopkg.in/mgo.v2"
 )
 
@@ -33,7 +33,7 @@ type Core struct {
 func NewCore(di *mgo.DialInfo) (*Core, error) {
 	db, err := database.New(di)
 	if err != nil {
-		return nil, servererrors.InvalidArgumentError{Message: "Could not connect to database, invalid database URL"}
+		return nil, servererrors.InvalidArgumentError{Message: "Failed to connect to database: " + err.Error()}
 	}
 
 	return &Core{

@@ -1,10 +1,10 @@
 package handlers
 
 import (
-	"log"
 	"net/http"
 
 	"github.com/mrclayman/rest-and-go/gameserver/core"
+	"github.com/mrclayman/rest-and-go/gameserver/serverlog"
 )
 
 // MatchlistHandler handles requests regarding listing
@@ -22,10 +22,10 @@ func NewMatchlistHandler(c *core.Core) *MatchlistHandler {
 // ProcessRequest processes the incoming request and creates
 // an appropriate response
 func (h *MatchlistHandler) ProcessRequest(resp http.ResponseWriter, req *http.Request) {
-	log.Println("Received match list request")
+	serverlog.Logger.Println("Received match list request")
 
 	if req.Method != "GET" {
-		log.Println("Wrong HTTP method used in matchlist request")
+		serverlog.Logger.Println("Wrong HTTP method used in matchlist request")
 		http.Error(resp, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
@@ -36,22 +36,22 @@ func (h *MatchlistHandler) ProcessRequest(resp http.ResponseWriter, req *http.Re
 	// Authenticate user
 	playerID, token, err := GetPlayerDataFromGET(req)
 	if err != nil {
-		log.Printf("Could not obtain player's credentials from GET: %v", err.Error())
+		serverlog.Logger.Printf("Could not obtain player's credentials from GET: %v", err.Error())
 		http.Error(resp, err.Error(), http.StatusBadRequest)
 		return
 	} else if !h.core.IsLoggedIn(playerID, token) {
-		log.Printf("Failed to authenticate token of player %v", playerID)
+		serverlog.Logger.Printf("Failed to authenticate token of player %v", playerID)
 		http.Error(resp, "Could not authenticate player's token", http.StatusUnauthorized)
 		return
 	}
 
-	log.Println("Retrieving match list")
+	serverlog.Logger.Println("Retrieving match list")
 	matchlist := h.core.GetMatchlistForJSON()
 	if err != nil {
-		log.Printf("Could not obtain match list for player %v: %v", playerID, err.Error())
+		serverlog.Logger.Printf("Could not obtain match list for player %v: %v", playerID, err.Error())
 		http.Error(resp, "Failed to retrieve match list: "+err.Error(), http.StatusInternalServerError)
 	}
 
 	WriteJSONToResponse(resp, matchlist)
-	log.Printf("Response to matchlist request of player %v dispatched", playerID)
+	serverlog.Logger.Printf("Response to matchlist request of player %v dispatched", playerID)
 }

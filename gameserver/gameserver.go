@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/tls"
-	"log"
 	"math/rand"
 	"net"
 	"net/http"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/mrclayman/rest-and-go/gameserver/core"
 	"github.com/mrclayman/rest-and-go/gameserver/handlers"
+	"github.com/mrclayman/rest-and-go/gameserver/serverlog"
 	"gopkg.in/mgo.v2"
 )
 
@@ -23,7 +23,7 @@ func createDBDialInfo(URL string) (*mgo.DialInfo, error) {
 	var di *mgo.DialInfo
 	var err error
 
-	log.Printf("Parsing database URL")
+	serverlog.Logger.Printf("Parsing database URL")
 	if di, err = mgo.ParseURL(URL); err != nil {
 		return nil, err
 	}
@@ -38,7 +38,7 @@ func createDBDialInfoAzure() (*mgo.DialInfo, error) {
 
 	return &mgo.DialInfo{
 		Addrs:          []string{"claytestgameserverdb.documents.azure.com:10255"},
-		Timeout:        time.Duration(10) * time.Second,
+		Timeout:        time.Duration(30) * time.Second,
 		FailFast:       true,
 		Database:       "testgamedb",
 		ReplicaSetName: "globaldb",
@@ -63,17 +63,18 @@ func (a *application) Cleanup() {
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
+	//mgo.SetLogger(serverlog.Logger)
 
 	di, err := createDBDialInfoAzure()
 	//di, err := createDBDialInfo(localDBURL)
 	if err != nil {
-		log.Fatal("Failed to create dial info: " + err.Error())
+		serverlog.Logger.Fatal("Failed to create dial info: " + err.Error())
 	}
 
 	var c *core.Core
 	c, err = core.NewCore(di)
 	if err != nil {
-		log.Fatal("Failed to create server core object: " + err.Error())
+		serverlog.Logger.Fatal("Failed to create server core object: " + err.Error())
 	}
 
 	app := &application{
@@ -82,6 +83,6 @@ func main() {
 	}
 	defer app.Cleanup()
 
-	log.Printf("Starting server on port %v", port)
-	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(int(port)), app.dispatcher))
+	serverlog.Logger.Printf("Starting server on port %v", port)
+	serverlog.Logger.Fatal(http.ListenAndServe(":"+strconv.Itoa(int(port)), app.dispatcher))
 }
