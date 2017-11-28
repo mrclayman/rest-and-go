@@ -4,9 +4,9 @@ package net
 const (
 	// TODO Probably make this configurable
 	// Azure server address
-	//serverAddress string = "claytestgameserver.azurewebsites.net"
+	serverAddress string = "claytestgameserver.azurewebsites.net"
 
-	serverAddress = "localhost:8000"
+	//serverAddress string = "localhost:8000"
 
 	restAPIProtocol string = "http://"
 )
