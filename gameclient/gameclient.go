@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/mrclayman/rest-and-go/gameclient/client"
+	"github.com/mrclayman/rest-and-go/gameclient/config"
 )
 
 ////////////// Functions ////////////////
@@ -34,6 +35,19 @@ func printMainMenu() int {
 }
 
 func main() {
+	cmdArgs, err := config.ParseCmdLineArgs()
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
+	var cfg *config.CfgParser
+	cfg, err = config.NewCfgParser(cmdArgs.CfgFilePath)
+	if err != nil {
+		fmt.Println(err.Error())
+		return
+	}
+
 	cl := http.Client{}
 	player, authData, err := client.Login(&cl)
 	if err != nil {
