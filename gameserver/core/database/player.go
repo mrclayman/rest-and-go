@@ -1,8 +1,8 @@
 package database
 
 import (
-	"github.com/mrclayman/rest-and-go/gameserver/core/servererrors"
 	"github.com/mrclayman/rest-and-go/gameserver/core/player"
+	"github.com/mrclayman/rest-and-go/gameserver/core/servererrors"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
@@ -20,16 +20,24 @@ func (db *Database) AuthenticatePlayer(login, password string) (player.ID, error
 	c := db.session.DB(db.dbName).C(db.playersCollName)
 	q := c.Find(bson.M{"nick": login, "password": password}).Select(bson.M{"id": 1})
 	r := make(map[string]interface{})
+	var refreshed, done bool
 
-	if err := q.One(r); err != nil {
-		if err == mgo.ErrNotFound {
-			return player.ID(0), servererrors.InvalidArgumentError{Message: "Wrong player nickname or password"}
+	for !done {
+		if err := q.One(r); err != nil {
+			if err == mgo.ErrNotFound {
+				return player.ID(0), servererrors.InvalidArgumentError{Message: "Wrong player nickname or password"}
+			} else if !refreshed {
+				db.session.Refresh()
+				refreshed = true
+				continue
+			} else {
+				return player.ID(0), servererrors.DatabaseError{Message: err.Error()}
+			}
+		} else if errMsg := isError(r); errMsg != "" {
+			return player.ID(0), servererrors.DatabaseError{Message: errMsg}
 		}
-		return player.ID(0), servererrors.DatabaseError{Message: err.Error()}
-	} else if errMsg := isError(r); errMsg != "" {
-		return player.ID(0), servererrors.DatabaseError{Message: errMsg}
+		done = true
 	}
-
 	return player.ID(r["id"].(int)), nil
 }
 
@@ -38,11 +46,22 @@ func (db *Database) AuthenticatePlayer(login, password string) (player.ID, error
 func (db *Database) GetPlayerNick(id player.ID) (string, error) {
 	c := db.session.DB(db.dbName).C(db.playersCollName)
 	q := c.Find(bson.M{"playerid": id}).Select(bson.M{"playername": 1})
-
 	var r map[string]interface{}
-	if err := q.One(r); err != nil {
-		return "", err
-	}
 
+	var refreshed, done bool
+	for !done {
+		if err := q.One(r); err != nil {
+			if err == mgo.ErrNotFound {
+				return "", servererrors.InvalidArgumentError{Message: "Unknown player ID"}
+			} else if !refreshed {
+				db.session.Refresh()
+				refreshed = true
+				continue
+			} else {
+				return "", err
+			}
+		}
+		done = true
+	}
 	return r["playername"].(string), nil
 }

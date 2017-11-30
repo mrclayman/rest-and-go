@@ -17,13 +17,21 @@ var (
 // associated with the DeathMatch game type
 func (db *Database) GetDMLeaderboard() ([]leaderboard.DMLeaderboardRecord, error) {
 	lbName := db.leaderboardCollPrefix + match.GameTypeToString(match.DeathMatch)
-
 	c := db.session.DB(db.dbName).C(lbName)
 	q := c.Find(bson.M{}).Sort(dmLeaderboardSortingCriterion...)
 
-	r := make(leaderboard.DMLeaderboard, 10)
-	if err := q.All(&r); err != nil {
-		return nil, err
+	r := make(leaderboard.DMLeaderboard, 0, 10)
+	var refreshed, done bool
+	for !done {
+		if err := q.All(&r); err != nil {
+			if !refreshed {
+				db.session.Refresh()
+				refreshed = true
+				continue
+			}
+			return nil, err
+		}
+		done = true
 	}
 	return r, nil
 }
@@ -32,13 +40,21 @@ func (db *Database) GetDMLeaderboard() ([]leaderboard.DMLeaderboardRecord, error
 // associated with the CTF game type
 func (db *Database) GetCTFLeaderboard() (*leaderboard.CTFLeaderboard, error) {
 	lbName := db.leaderboardCollPrefix + match.GameTypeToString(match.CaptureTheFlag)
-
 	c := db.session.DB(db.dbName).C(lbName)
 	q := c.Find(bson.M{}).Sort(ctfLeaderboardSortingCriterion...)
 
-	r := make(leaderboard.CTFLeaderboard, 10)
-	if err := q.All(&r); err != nil {
-		return nil, err
+	r := make(leaderboard.CTFLeaderboard, 0, 10)
+	var refreshed, done bool
+	for !done {
+		if err := q.All(&r); err != nil {
+			if !refreshed {
+				db.session.Refresh()
+				refreshed = true
+				continue
+			}
+			return nil, err
+		}
+		done = true
 	}
 	return &r, nil
 }
@@ -47,13 +63,21 @@ func (db *Database) GetCTFLeaderboard() (*leaderboard.CTFLeaderboard, error) {
 // associated with the LMS game type
 func (db *Database) GetLMSLeaderboard() (*leaderboard.LMSLeaderboard, error) {
 	lbName := db.leaderboardCollPrefix + match.GameTypeToString(match.LastManStanding)
-
 	c := db.session.DB(db.dbName).C(lbName)
 	q := c.Find(bson.M{}).Sort(lmsLeaderboardSortingCriterion...)
 
-	r := make(leaderboard.LMSLeaderboard, 10)
-	if err := q.All(&r); err != nil {
-		return nil, err
+	r := make(leaderboard.LMSLeaderboard, 0, 10)
+	var refreshed, done bool
+	for !done {
+		if err := q.All(&r); err != nil {
+			if !refreshed {
+				db.session.Refresh()
+				refreshed = true
+				continue
+			}
+			return nil, err
+		}
+		done = true
 	}
 	return &r, nil
 }
@@ -62,13 +86,21 @@ func (db *Database) GetLMSLeaderboard() (*leaderboard.LMSLeaderboard, error) {
 // associated with the Duel game type
 func (db *Database) GetDuelLeaderboard() (*leaderboard.DuelLeaderboard, error) {
 	lbName := db.leaderboardCollPrefix + match.GameTypeToString(match.Duel)
-
 	c := db.session.DB(db.dbName).C(lbName)
 	q := c.Find(bson.M{}).Sort(duelLeaderboardSortingCriterion...)
 
-	r := make(leaderboard.DuelLeaderboard, 10)
-	if err := q.All(&r); err != nil {
-		return nil, err
+	r := make(leaderboard.DuelLeaderboard, 0, 10)
+	var refreshed, done bool
+	for !done {
+		if err := q.All(&r); err != nil {
+			if !refreshed {
+				db.session.Refresh()
+				refreshed = true
+				continue
+			}
+			return nil, err
+		}
+		done = true
 	}
 	return &r, nil
 }
