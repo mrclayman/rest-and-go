@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"time"
 
@@ -20,6 +21,10 @@ type ConnectionConfig struct {
 type Config struct {
 	Conn *ConnectionConfig
 }
+
+// Cfg is a global instance of
+// the parsed configuration file
+var Cfg *Config
 
 // ParseCfgFile parses the configuration
 // file stored at the path provided in the
@@ -53,12 +58,14 @@ func parseConnConfig(c *configparser.Configuration) (*ConnectionConfig, error) {
 	if len(serverURL) == 0 {
 		return nil, errors.New("No server URL defined")
 	}
+	fmt.Println("Will connect to server running at", serverURL)
 
 	var timeout uint64
 	timeout, err = strconv.ParseUint(s.ValueOf("ConnectionTimeout"), 10, 32)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("Connection timeout set to " + strconv.FormatUint(timeout, 10) + "s")
 
 	return &ConnectionConfig{
 		ServerURL: serverURL,

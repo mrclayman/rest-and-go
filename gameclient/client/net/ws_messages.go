@@ -7,6 +7,7 @@ import (
 
 	"github.com/gorilla/websocket"
 	"github.com/mrclayman/rest-and-go/gameclient/client/match"
+	"github.com/mrclayman/rest-and-go/gameclient/config"
 )
 
 const (
@@ -51,7 +52,7 @@ type Message struct {
 // ConnectSession launches a WebSocket session
 // for the player
 func ConnectSession() (*websocket.Conn, error) {
-	u := url.URL{Scheme: "ws", Host: serverAddress, Path: "/match/room"}
+	u := url.URL{Scheme: "ws", Host: config.Cfg.Conn.ServerURL, Path: "/match/room"}
 	conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {
 		return nil, err

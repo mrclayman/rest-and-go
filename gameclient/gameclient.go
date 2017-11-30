@@ -39,10 +39,12 @@ func main() {
 	if err != nil {
 		fmt.Println(err.Error())
 		return
+	} else if cmdArgs == nil {
+		// The user just asked for usage instructions
+		return
 	}
 
-	var cfg *config.CfgParser
-	cfg, err = config.NewCfgParser(cmdArgs.CfgFilePath)
+	config.Cfg, err = config.ParseCfgFile(cmdArgs.CfgFilePath)
 	if err != nil {
 		fmt.Println(err.Error())
 		return

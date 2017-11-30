@@ -8,6 +8,7 @@ import (
 	"net/http"
 
 	"github.com/mrclayman/rest-and-go/gameclient/client/shared"
+	"github.com/mrclayman/rest-and-go/gameclient/config"
 )
 
 func processResponse(resp *http.Response, out interface{}) error {
@@ -37,7 +38,7 @@ func processResponse(resp *http.Response, out interface{}) error {
 // Post sends a POST request to the server, then parses
 // the reply and stores it in the 'out' argument
 func Post(client *http.Client, endpoint string, data []byte, out interface{}) error {
-	resp, err := client.Post(restAPIProtocol+serverAddress+endpoint, "application/json",
+	resp, err := client.Post(restAPIProtocol+config.Cfg.Conn.ServerURL+endpoint, "application/json",
 		bytes.NewReader(data))
 	if err != nil {
 		return err
@@ -51,7 +52,7 @@ func Post(client *http.Client, endpoint string, data []byte, out interface{}) er
 // Get sends a GET request to the server, then parses
 // the reply and stores it in the 'out' argument
 func Get(client *http.Client, endpoint string, ps PlayerSession, out interface{}) error {
-	url := restAPIProtocol + serverAddress + endpoint + "?" + ps.ToGet()
+	url := restAPIProtocol + config.Cfg.Conn.ServerURL + endpoint + "?" + ps.ToGet()
 	resp, err := client.Get(url)
 	if err != nil {
 		return err
