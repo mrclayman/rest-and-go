@@ -2,12 +2,14 @@ package main
 
 import (
 	"crypto/tls"
+	"log"
 	"math/rand"
 	"net"
 	"net/http"
 	"strconv"
 	"time"
 
+	"github.com/mrclayman/rest-and-go/gameserver/config"
 	"github.com/mrclayman/rest-and-go/gameserver/core"
 	"github.com/mrclayman/rest-and-go/gameserver/handlers"
 	"github.com/mrclayman/rest-and-go/gameserver/serverlog"
@@ -19,34 +21,25 @@ const port uint16 = 8000
 
 const localDBURL string = "mongodb://localhost:27017/testgamedb"
 
-func createDBDialInfo(URL string) (*mgo.DialInfo, error) {
-	var di *mgo.DialInfo
-	var err error
-
-	serverlog.Logger.Printf("Parsing database URL")
-	if di, err = mgo.ParseURL(URL); err != nil {
-		return nil, err
-	}
-
-	return di, nil
-}
-
 // createDBDialInfo is used to create mgo.DialInfo object
 // that allows communication over TLS/SSL-secured communication channel
-func createDBDialInfoAzure() (*mgo.DialInfo, error) {
-	//const dbURL string = "mongodb://claytestgameserverdb:Y3IyfX0vFBlqNjyRw4VK8qRge6JxK2x80468XJppzC22KWAhsBcCQ8eHtOb2g6WEpkOHsM52TM2Vf2ObZtZgqA==@/?ssl=true&replicaSet=globaldb"
+func createDBDialInfo(c *config.DatabaseConfig) (*mgo.DialInfo, error) {
+	var dialFn func(*mgo.ServerAddr) (net.Conn, error)
+	if c.SSL {
+		dialFn = func(addr *mgo.ServerAddr) (net.Conn, error) {
+			return tls.Dial("tcp", addr.String(), &tls.Config{})
+		}
+	}
 
 	return &mgo.DialInfo{
-		Addrs:          []string{"claytestgameserverdb.documents.azure.com:10255"},
-		Timeout:        time.Duration(30) * time.Second,
+		Addrs:          []string{c.Host},
+		Timeout:        c.ConnectionTimeout,
 		FailFast:       true,
-		Database:       "testgamedb",
-		ReplicaSetName: "globaldb",
-		Username:       "claytestgameserverdb",
-		Password:       "Y3IyfX0vFBlqNjyRw4VK8qRge6JxK2x80468XJppzC22KWAhsBcCQ8eHtOb2g6WEpkOHsM52TM2Vf2ObZtZgqA==",
-		DialServer: func(addr *mgo.ServerAddr) (net.Conn, error) {
-			return tls.Dial("tcp", addr.String(), &tls.Config{})
-		},
+		Database:       c.Database,
+		ReplicaSetName: c.RSName,
+		Username:       c.User,
+		Password:       c.Password,
+		DialServer:     dialFn,
 	}, nil
 }
 
@@ -63,10 +56,22 @@ func (a *application) Cleanup() {
 
 func main() {
 	rand.Seed(time.Now().UnixNano())
-	//mgo.SetLogger(serverlog.Logger)
 
-	di, err := createDBDialInfoAzure()
-	//di, err := createDBDialInfo(localDBURL)
+	cmdArgs, err := config.ParseCmdLineArgs()
+	if err != nil {
+		log.Fatal("Failed to parse command line arguments: " + err.Error())
+	}
+
+	var cfgFile *config.Config
+	if cfgFile, err = config.ParseCfgFile(cmdArgs.CfgFilePath); err != nil {
+		log.Fatal("Failed to obtain valid configuration from file: " + err.Error())
+	}
+
+	if cfgFile.Log.LogMgo {
+		mgo.SetLogger(serverlog.Logger)
+	}
+
+	di, err := createDBDialInfo(cfgFile.DB)
 	if err != nil {
 		serverlog.Logger.Fatal("Failed to create dial info: " + err.Error())
 	}
