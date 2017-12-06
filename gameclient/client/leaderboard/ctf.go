@@ -19,7 +19,7 @@ type CTFLeaderboard []CTFLeaderboardRecord
 
 // UnmarshalCTFLeaderboard unmarshals a map of elements
 // into an instance of the CTFLeaderboardRecord
-func UnmarshalCTFLeaderboard(in []map[string]interface{}) (*CTFLeaderboard, error) {
+/*func UnmarshalCTFLeaderboard(in []map[string]interface{}) (*CTFLeaderboard, error) {
 	retval := CTFLeaderboard{}
 
 	for _, lbRecIf := range in {
@@ -65,3 +65,4 @@ func unmarshalCTFLeaderboardRecord(in map[string]interface{}) (CTFLeaderboardRec
 		Captures: captures,
 	}, nil
 }
+*/

@@ -1,10 +1,7 @@
 package match
 
 import (
-	"errors"
-
 	"github.com/mrclayman/rest-and-go/gameclient/client/player"
-	"github.com/mrclayman/rest-and-go/gameclient/client/shared"
 )
 
 // DuelPlayerRank defines the structure of
@@ -17,7 +14,7 @@ type DuelPlayerRank struct {
 
 // DuelPlayerRanks defines the type for a slice
 // of Duel game type player rank objects
-type DuelPlayerRanks []DuelPlayerRank
+type DuelPlayerRanks map[player.ID]DuelPlayerRank
 
 // DuelMatch contains information on
 // a Duel type match
@@ -31,7 +28,7 @@ type DuelMatches []*DuelMatch
 
 // unmarshalDuelMatch unmarshals the contents of the
 // input map into an instance of DuelMatch
-func unmarshalDuelMatch(in map[string]interface{}) (*DuelMatch, error) {
+/*func unmarshalDuelMatch(in map[string]interface{}) (*DuelMatch, error) {
 	mID, err := IDFromMap(in)
 	if err != nil {
 		return nil, err
@@ -91,3 +88,4 @@ func unmarshalDuelRankRecord(in map[string]interface{}) (DuelPlayerRank, error) 
 		Deaths: deaths,
 	}, nil
 }
+*/

@@ -1,10 +1,7 @@
 package match
 
 import (
-	"errors"
-
 	"github.com/mrclayman/rest-and-go/gameclient/client/player"
-	"github.com/mrclayman/rest-and-go/gameclient/client/shared"
 )
 
 // CTFPlayerRank defines the structure of a player's
@@ -18,7 +15,7 @@ type CTFPlayerRank struct {
 
 // CTFPlayerRanks is a slice of CTF game type
 // player rank objects
-type CTFPlayerRanks []CTFPlayerRank
+type CTFPlayerRanks map[player.ID]CTFPlayerRank
 
 // CTFMatch contains information on
 // a CTF type match
@@ -32,7 +29,7 @@ type CTFMatches []*CTFMatch
 
 // unmarshalCTFMatch unmarshals the contents of the
 // input map into an instance of CTFMatch
-func unmarshalCTFMatch(in map[string]interface{}) (*CTFMatch, error) {
+/*func unmarshalCTFMatch(in map[string]interface{}) (*CTFMatch, error) {
 	mID, err := IDFromMap(in)
 	if err != nil {
 		return nil, err
@@ -99,3 +96,4 @@ func unmarshalCTFRankRecord(in map[string]interface{}) (CTFPlayerRank, error) {
 		Captures: captures,
 	}, nil
 }
+*/

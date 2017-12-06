@@ -1,9 +1,12 @@
 package player
 
+// ID is the type of a player's id
+type ID int
+
 // Player structure defines the basic credentials of
 // the player after getting connected to the server
 type Player struct {
-	ID   int    `json:"id"`
+	ID   ID     `json:"id"`
 	Nick string `json:"nick"`
 }
 

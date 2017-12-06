@@ -3,7 +3,6 @@ package net
 import (
 	"bytes"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 
@@ -20,33 +19,23 @@ func processResponse(resp *http.Response, out interface{}) error {
 		return errors.New(string(respData))
 	} else if respDataLen == 0 {
 		return nil
-	} else if resp.Header.Get("Content-Type") != "application/json" {
-		return errors.New("Unexpected response content type")
+	} else if ct := resp.Header.Get("Content-Type"); ct != usedContentType {
+		return errors.New("Unexpected response content type: " + ct)
 	}
 
-	//fmt.Println(string(respData))
-	if out != nil {
-		if err != nil {
-			fmt.Println("Failed to unmarshal data:", err.Error())
-		}
-	}
-
-	err = shared.DecodeJSON(respData, out)
-	return err
+	return shared.DecodeJSON(respData, out)
 }
 
 // Post sends a POST request to the server, then parses
 // the reply and stores it in the 'out' argument
 func Post(client *http.Client, endpoint string, data []byte, out interface{}) error {
-	resp, err := client.Post(restAPIProtocol+config.Cfg.Conn.ServerURL+endpoint, "application/json",
+	resp, err := client.Post(restAPIProtocol+config.Cfg.Conn.ServerURL+endpoint, usedContentType,
 		bytes.NewReader(data))
 	if err != nil {
 		return err
-	} else if err = processResponse(resp, out); err != nil {
-		return err
 	}
 
-	return nil
+	return processResponse(resp, out)
 }
 
 // Get sends a GET request to the server, then parses
@@ -56,9 +45,7 @@ func Get(client *http.Client, endpoint string, ps PlayerSession, out interface{}
 	resp, err := client.Get(url)
 	if err != nil {
 		return err
-	} else if err = processResponse(resp, out); err != nil {
-		return err
 	}
 
-	return nil
+	return processResponse(resp, out)
 }

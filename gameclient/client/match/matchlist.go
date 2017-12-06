@@ -1,21 +1,118 @@
 package match
 
 import (
-	"errors"
-	"reflect"
-
-	"github.com/mrclayman/rest-and-go/gameclient/client/shared"
+	"bytes"
+	"encoding/json"
 )
 
 // Matchlist defines a structure that holds
 // lists of existing matches for all game types
 type Matchlist struct {
-	DM   DMMatches
-	CTF  CTFMatches
-	LMS  LMSMatches
-	Duel DuelMatches
+	DM   DMMatches   `json:"dm"`
+	CTF  CTFMatches  `json:"ctf"`
+	LMS  LMSMatches  `json:"lms"`
+	Duel DuelMatches `json:"duel"`
 }
 
+// MatchlistUnmarshaler unmarshals the contents
+// of the Matchlist structure from JSON byte slice
+type MatchlistUnmarshaler struct {
+	Matchlist Matchlist
+}
+
+// UnmarshalJSON unmarshals the contents of a server's
+// response into the internal structure of match lists
+func (m *MatchlistUnmarshaler) UnmarshalJSON(in []byte) error {
+	d := json.NewDecoder(bytes.NewReader(in))
+	//d.UseNumber()
+
+	d.Decode(&m.Matchlist)
+	return nil
+	// Read opening curly brace
+	/*	var t json.Token
+		var err error
+		if t, err = d.Token(); err != nil {
+			return err
+		}
+
+		for d.More() {
+			var gt string
+			var ok bool
+
+			// Get the game type identifier
+			t, err = d.Token()
+			gt, ok = t.(string)
+			if !ok {
+				return errors.New("Token not a string (game type)")
+			}
+			fmt.Printf("Processing match list for type %v\n", gt)
+
+					if err = d.Decode(&gt); err != nil {
+					fmt.Println("Failed to read game type identifier")
+					return err
+				}
+
+			switch gt {
+			case DeathMatch:
+				err = m.unmarshalDMMatchlist(d)
+			case CaptureTheFlag:
+				err = m.unmarshalCTFMatchlist(d)
+			case LastManStanding:
+				err = m.unmarshalLMSMatchlist(d)
+			case Duel:
+				err = m.unmarshalDuelMatchlist(d)
+			}
+
+			if err != nil {
+				return err
+			}
+		}
+
+		return nil
+	*/
+}
+
+func (m *Matchlist) unmarshalDMMatchlist(d *json.Decoder) error {
+	matches := make(DMMatches, 0, 5)
+	if err := d.Decode(&matches); err != nil {
+		return err
+	}
+
+	m.DM = matches
+	return nil
+}
+
+func (m *Matchlist) unmarshalCTFMatchlist(d *json.Decoder) error {
+	matches := make(CTFMatches, 0, 5)
+	if err := d.Decode(&matches); err != nil {
+		return err
+	}
+
+	m.CTF = matches
+	return nil
+}
+
+func (m *Matchlist) unmarshalLMSMatchlist(d *json.Decoder) error {
+	matches := make(LMSMatches, 0, 5)
+	if err := d.Decode(&matches); err != nil {
+		return err
+	}
+
+	m.LMS = matches
+	return nil
+}
+
+func (m *Matchlist) unmarshalDuelMatchlist(d *json.Decoder) error {
+	matches := make(DuelMatches, 0, 5)
+	if err := d.Decode(&matches); err != nil {
+		return err
+	}
+
+	m.Duel = matches
+	return nil
+}
+
+/*
 // UnmarshalJSON unmarshals input byteslice into
 // a map structure, from which individual match
 // type instances are synthesized
@@ -59,6 +156,7 @@ func (m *Matchlist) UnmarshalJSON(in []byte) error {
 
 	return nil
 }
+
 
 func (m *Matchlist) unmarshalDMMatches(in []interface{}) error {
 	for _, mMapIf := range in {
@@ -123,3 +221,4 @@ func (m *Matchlist) unmarshalDuelMatches(in []interface{}) error {
 	}
 	return nil
 }
+*/

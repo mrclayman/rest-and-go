@@ -19,7 +19,7 @@ type DuelLeaderboard []DuelLeaderboardRecord
 
 // UnmarshalDuelLeaderboard unmarshals a map of elements
 // into an instance of the DuelLeaderboardRecord
-func UnmarshalDuelLeaderboard(in []map[string]interface{}) (*DuelLeaderboard, error) {
+/*func UnmarshalDuelLeaderboard(in []map[string]interface{}) (*DuelLeaderboard, error) {
 	retval := DuelLeaderboard{}
 
 	for _, lbRecIf := range in {
@@ -65,3 +65,4 @@ func unmarshalDuelLeaderboardRecord(in map[string]interface{}) (DuelLeaderboardR
 		Wins:   wins,
 	}, nil
 }
+*/

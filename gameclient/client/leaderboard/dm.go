@@ -19,7 +19,7 @@ type DMLeaderboard []DMLeaderboardRecord
 
 // UnmarshalDMLeaderboard unmarshals a map of elements
 // into an instance of the DMLeaderboardRecord
-func UnmarshalDMLeaderboard(in []map[string]interface{}) (*DMLeaderboard, error) {
+/*func UnmarshalDMLeaderboard(in []map[string]interface{}) (*DMLeaderboard, error) {
 	retval := DMLeaderboard{}
 
 	for _, lbRecIf := range in {
@@ -59,3 +59,4 @@ func unmarshalDMLeaderboardRecord(in map[string]interface{}) (DMLeaderboardRecor
 		Deaths: deaths,
 	}, nil
 }
+*/

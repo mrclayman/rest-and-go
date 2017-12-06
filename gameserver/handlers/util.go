@@ -3,6 +3,7 @@ package handlers
 import (
 	"encoding/json"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"path"
 	"strings"
@@ -58,6 +59,7 @@ func WriteJSONToResponse(resp http.ResponseWriter, in interface{}) error {
 	if err != nil {
 		return err
 	}
+	log.Printf("Sending JSON reply: %v", string(buf))
 
 	resp.Header().Set("Content-Type", "application/json")
 	_, err = resp.Write(buf)

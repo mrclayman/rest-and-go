@@ -2,7 +2,6 @@ package leaderboard
 
 import (
 	"github.com/mrclayman/rest-and-go/gameclient/client/player"
-	"github.com/mrclayman/rest-and-go/gameclient/client/shared"
 )
 
 // LMSLeaderboardRecord contains information
@@ -19,7 +18,7 @@ type LMSLeaderboard []LMSLeaderboardRecord
 
 // UnmarshalLMSLeaderboard unmarshals a map of elements
 // into an instance of the LMSLeaderboardRecord
-func UnmarshalLMSLeaderboard(in []map[string]interface{}) (*LMSLeaderboard, error) {
+/*func UnmarshalLMSLeaderboard(in []map[string]interface{}) (*LMSLeaderboard, error) {
 	retval := LMSLeaderboard{}
 
 	for _, lbRecIf := range in {
@@ -65,3 +64,4 @@ func unmarshalLMSLeaderboardRecord(in map[string]interface{}) (LMSLeaderboardRec
 		Wins:   wins,
 	}, nil
 }
+*/

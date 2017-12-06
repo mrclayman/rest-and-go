@@ -1,10 +1,7 @@
 package match
 
 import (
-	"errors"
-
 	"github.com/mrclayman/rest-and-go/gameclient/client/player"
-	"github.com/mrclayman/rest-and-go/gameclient/client/shared"
 )
 
 // LMSPlayerRank defines the structure of a player's
@@ -17,7 +14,7 @@ type LMSPlayerRank struct {
 
 // LMSPlayerRanks is a type for a slice of
 // LMS game type player rank objects
-type LMSPlayerRanks []LMSPlayerRank
+type LMSPlayerRanks map[player.ID]LMSPlayerRank
 
 // LMSMatch contains information on
 // a LMS type match
@@ -31,7 +28,7 @@ type LMSMatches []*LMSMatch
 
 // unmarshalLMSMatch unmarshals the contents of the
 // input map into an instance of LMSMatch
-func unmarshalLMSMatch(in map[string]interface{}) (*LMSMatch, error) {
+/*func unmarshalLMSMatch(in map[string]interface{}) (*LMSMatch, error) {
 	mID, err := IDFromMap(in)
 	if err != nil {
 		return nil, err
@@ -91,3 +88,4 @@ func unmarshalLMSRankRecord(in map[string]interface{}) (LMSPlayerRank, error) {
 		Deaths: deaths,
 	}, nil
 }
+*/

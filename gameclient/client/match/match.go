@@ -1,12 +1,5 @@
 package match
 
-import (
-	"encoding/json"
-	"errors"
-	"reflect"
-	"strconv"
-)
-
 // Number defines the type that holds
 // the value of the number of the match
 type Number uint64
@@ -25,7 +18,7 @@ type ID struct {
 // IDFromMap retrieves an element with key "match_id"
 // from the map in the argument and verifies that the
 // element's type is an uint64.
-func IDFromMap(m map[string]interface{}) (uint64, error) {
+/*func IDFromMap(m map[string]interface{}) (uint64, error) {
 	if v, ok := m["match_id"]; !ok {
 		return 0, errors.New("Match does not seem to have 'match_id' key")
 	} else if IDNum, ok := v.(json.Number); !ok {
@@ -40,4 +33,4 @@ func IDFromMap(m map[string]interface{}) (uint64, error) {
 		}
 		return ID, nil
 	}
-}
+}*/

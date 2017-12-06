@@ -1,14 +1,9 @@
 package player
 
-import (
-	"encoding/json"
-	"errors"
-)
-
 // FromMap retrieves player info under the key "player"
 // from the map in the argument and synthesizes an instance
 // of the Player structure from them
-func FromMap(rankRec map[string]interface{}) (Player, error) {
+/*func FromMap(rankRec map[string]interface{}) (Player, error) {
 	var pm map[string]interface{}
 
 	pIf, ok := rankRec["player"]
@@ -29,4 +24,4 @@ func FromMap(rankRec map[string]interface{}) (Player, error) {
 	} else {
 		return Player{ID: int(ID), Nick: nick}, nil
 	}
-}
+}*/

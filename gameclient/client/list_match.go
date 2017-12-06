@@ -11,17 +11,17 @@ import (
 // ListMatches queries the server using player's credentials
 // and prints out to stdout the list of active matches
 func ListMatches(c *http.Client, ps net.PlayerSession) (*match.Matchlist, error) {
-	var matches match.Matchlist
+	var mu match.MatchlistUnmarshaler
 
-	if err := net.Get(c, "/matches", ps, &matches); err != nil {
+	if err := net.Get(c, "/matches", ps, &mu); err != nil {
 		return nil, err
 	}
 
-	listDMMatches(&matches.DM)
-	listCTFMatches(&matches.CTF)
-	listLMSMatches(&matches.LMS)
-	listDuelMatches(&matches.Duel)
-	return &matches, nil
+	listDMMatches(&mu.Matchlist.DM)
+	listCTFMatches(&mu.Matchlist.CTF)
+	listLMSMatches(&mu.Matchlist.LMS)
+	listDuelMatches(&mu.Matchlist.Duel)
+	return &mu.Matchlist, nil
 }
 
 func listDMMatches(ml *match.DMMatches) {

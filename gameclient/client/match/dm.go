@@ -1,10 +1,7 @@
 package match
 
 import (
-	"errors"
-
 	"github.com/mrclayman/rest-and-go/gameclient/client/player"
-	"github.com/mrclayman/rest-and-go/gameclient/client/shared"
 )
 
 // DMPlayerRank aggregates information on a player's
@@ -16,7 +13,7 @@ type DMPlayerRank struct {
 }
 
 // DMPlayerRanks defines a list of players' ranks
-type DMPlayerRanks []DMPlayerRank
+type DMPlayerRanks map[player.ID]DMPlayerRank
 
 // DMMatch contains information on a
 // DeathMatch type match
@@ -30,7 +27,7 @@ type DMMatches []*DMMatch
 
 // unmarshalDMMatch unmarshals the contents of the
 // input map into an instance of DMMatch
-func unmarshalDMMatch(in map[string]interface{}) (*DMMatch, error) {
+/*func unmarshalDMMatch(in map[string]interface{}) (*DMMatch, error) {
 	mID, err := IDFromMap(in)
 	if err != nil {
 		return nil, err
@@ -90,3 +87,4 @@ func unmarshalDMRankRecord(in map[string]interface{}) (DMPlayerRank, error) {
 		Deaths: deaths,
 	}, nil
 }
+*/
