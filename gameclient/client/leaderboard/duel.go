@@ -1,9 +1,6 @@
 package leaderboard
 
-import (
-	"github.com/mrclayman/rest-and-go/gameclient/client/player"
-	"github.com/mrclayman/rest-and-go/gameclient/client/shared"
-)
+import "github.com/mrclayman/rest-and-go/gameclient/client/player"
 
 // DuelLeaderboardRecord contains information
 // on record in a Duel-type leaderboard

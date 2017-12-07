@@ -1,7 +1,6 @@
 package match
 
 import (
-	"bytes"
 	"encoding/json"
 )
 
@@ -23,11 +22,7 @@ type MatchlistUnmarshaler struct {
 // UnmarshalJSON unmarshals the contents of a server's
 // response into the internal structure of match lists
 func (m *MatchlistUnmarshaler) UnmarshalJSON(in []byte) error {
-	d := json.NewDecoder(bytes.NewReader(in))
-	//d.UseNumber()
-
-	d.Decode(&m.Matchlist)
-	return nil
+	return json.Unmarshal(in, &m.Matchlist)
 	// Read opening curly brace
 	/*	var t json.Token
 		var err error
@@ -72,6 +67,7 @@ func (m *MatchlistUnmarshaler) UnmarshalJSON(in []byte) error {
 	*/
 }
 
+/*
 func (m *Matchlist) unmarshalDMMatchlist(d *json.Decoder) error {
 	matches := make(DMMatches, 0, 5)
 	if err := d.Decode(&matches); err != nil {

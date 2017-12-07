@@ -36,22 +36,16 @@ func getDesiredLeaderboardType() string {
 func GetLeaderboard(c *http.Client, ps net.PlayerSession) error {
 	gt := getDesiredLeaderboardType()
 
-	var lboard []map[string]interface{}
-
-	if err := net.Get(c, "/leaderboards/"+gt, ps, &lboard); err != nil {
-		return err
-	}
-
 	var err error
 	switch gt {
 	case match.DeathMatch:
-		err = handleDMLeaderboard(lboard)
+		err = handleDMLeaderboard(c, ps)
 	case match.CaptureTheFlag:
-		err = handleCTFLeaderboard(lboard)
+		err = handleCTFLeaderboard(c, ps)
 	case match.LastManStanding:
-		err = handleLMSLeaderboard(lboard)
+		err = handleLMSLeaderboard(c, ps)
 	case match.Duel:
-		err = handleDuelLeaderboard(lboard)
+		err = handleDuelLeaderboard(c, ps)
 	default:
 		err = errors.New("Unhandled game type '" + gt + "' in GetLeaderboard()")
 	}
@@ -66,15 +60,15 @@ func GetLeaderboard(c *http.Client, ps net.PlayerSession) error {
 // handleDMLeaderboard unmarshals the data in the
 // input map into a list of DeathMatch-type leaderboard
 // records and prints out their contents
-func handleDMLeaderboard(lbMap []map[string]interface{}) error {
-	lb, err := leaderboard.UnmarshalDMLeaderboard(lbMap)
-	if err != nil {
+func handleDMLeaderboard(c *http.Client, ps net.PlayerSession) error {
+	lboard := make(leaderboard.DMLeaderboard, 0, 10)
+	if err := net.Get(c, "/leaderboards/"+match.DeathMatch, ps, &lboard); err != nil {
 		return err
 	}
 
 	fmt.Println("-----------------------\nDeathMatch game type leaderboards")
 	fmt.Println("Player\tKills\tDeaths\n-----------------------")
-	for _, r := range *lb {
+	for _, r := range lboard {
 		fmt.Println(r.Player.Nick, "\t", r.Kills, "\t", r.Deaths)
 	}
 	fmt.Println("-----------------------")
@@ -84,15 +78,15 @@ func handleDMLeaderboard(lbMap []map[string]interface{}) error {
 // handleCTFLeaderboard unmarshals the data in the
 // input map into a list of DeathMatch-type leaderboard
 // records and prints out their contents
-func handleCTFLeaderboard(lbMap []map[string]interface{}) error {
-	lb, err := leaderboard.UnmarshalCTFLeaderboard(lbMap)
-	if err != nil {
+func handleCTFLeaderboard(c *http.Client, ps net.PlayerSession) error {
+	lboard := make(leaderboard.CTFLeaderboard, 0, 10)
+	if err := net.Get(c, "/leaderboards/"+match.CaptureTheFlag, ps, &lboard); err != nil {
 		return err
 	}
 
 	fmt.Println("-----------------------\nCapture the Flag game type leaderboards")
 	fmt.Println("Player\tKills\tDeaths\tCaptures\n-----------------------")
-	for _, r := range *lb {
+	for _, r := range lboard {
 		fmt.Println(r.Player.Nick, "\t", r.Kills, "\t", r.Deaths, "\t", r.Captures)
 	}
 	fmt.Println("-----------------------")
@@ -102,15 +96,15 @@ func handleCTFLeaderboard(lbMap []map[string]interface{}) error {
 // handleLMSLeaderboard unmarshals the data in the
 // input map into a list of DeathMatch-type leaderboard
 // records and prints out their contents
-func handleLMSLeaderboard(lbMap []map[string]interface{}) error {
-	lb, err := leaderboard.UnmarshalLMSLeaderboard(lbMap)
-	if err != nil {
+func handleLMSLeaderboard(c *http.Client, ps net.PlayerSession) error {
+	lboard := make(leaderboard.LMSLeaderboard, 0, 10)
+	if err := net.Get(c, "/leaderboards/"+match.LastManStanding, ps, &lboard); err != nil {
 		return err
 	}
 
 	fmt.Println("-----------------------\nLast Man Standing game type leaderboards")
 	fmt.Println("Player\tKills\tDeaths\tWins\n-----------------------")
-	for _, r := range *lb {
+	for _, r := range lboard {
 		fmt.Println(r.Player.Nick, "\t", r.Kills, "\t", r.Deaths, "\t", r.Wins)
 	}
 	fmt.Println("-----------------------")
@@ -120,15 +114,15 @@ func handleLMSLeaderboard(lbMap []map[string]interface{}) error {
 // handleDuelLeaderboard unmarshals the data in the
 // input map into a list of DeathMatch-type leaderboard
 // records and prints out their contents
-func handleDuelLeaderboard(lbMap []map[string]interface{}) error {
-	lb, err := leaderboard.UnmarshalDuelLeaderboard(lbMap)
-	if err != nil {
+func handleDuelLeaderboard(c *http.Client, ps net.PlayerSession) error {
+	lboard := make(leaderboard.DuelLeaderboard, 0, 10)
+	if err := net.Get(c, "/leaderboards/"+match.Duel, ps, &lboard); err != nil {
 		return err
 	}
 
 	fmt.Println("-----------------------\nDuel game type leaderboards")
 	fmt.Println("Player\tKills\tDeaths\tWins\n-----------------------")
-	for _, r := range *lb {
+	for _, r := range lboard {
 		fmt.Println(r.Player.Nick, "\t", r.Kills, "\t", r.Deaths, "\t", r.Wins)
 	}
 	fmt.Println("-----------------------")

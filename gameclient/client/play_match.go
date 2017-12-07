@@ -58,7 +58,7 @@ func printPlayerList(mt string, playerList map[string]interface{}) {
 }
 
 func runMatchLoop(c *http.Client, ps net.PlayerSession, ms net.MatchSession) error {
-	conn, err := net.ConnectSession()
+	conn, err := net.CreateSession()
 	if err != nil {
 		return err
 	}

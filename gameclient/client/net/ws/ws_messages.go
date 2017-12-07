@@ -1,4 +1,4 @@
-package net
+package ws
 
 import (
 	"errors"
@@ -49,9 +49,9 @@ type Message struct {
 	Data      interface{} `json:"data"`
 }
 
-// ConnectSession launches a WebSocket session
+// CreateSession launches a WebSocket session
 // for the player
-func ConnectSession() (*websocket.Conn, error) {
+func CreateSession() (*websocket.Conn, error) {
 	u := url.URL{Scheme: "ws", Host: config.Cfg.Conn.ServerURL, Path: "/match/room"}
 	conn, _, err := websocket.DefaultDialer.Dial(u.String(), nil)
 	if err != nil {

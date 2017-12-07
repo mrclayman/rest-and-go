@@ -2,7 +2,6 @@ package leaderboard
 
 import (
 	"github.com/mrclayman/rest-and-go/gameclient/client/player"
-	"github.com/mrclayman/rest-and-go/gameclient/client/shared"
 )
 
 // DMLeaderboardRecord contains information
