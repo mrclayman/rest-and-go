@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/mrclayman/rest-and-go/gameclient/client/match"
 	"github.com/mrclayman/rest-and-go/gameclient/client/net"
-	"github.com/mrclayman/rest-and-go/gameclient/client/player"
-	"github.com/mrclayman/rest-and-go/gameclient/client/shared"
+	"github.com/mrclayman/rest-and-go/gameclient/client/net/ws"
 )
 
 func getUserAction() uint16 {
@@ -35,37 +35,27 @@ func getUserAction() uint16 {
 	return choice
 }
 
-func printPlayerList(mt string, playerList map[string]interface{}) {
-	fmt.Println("---------------\nMatch type:", mt)
-	fmt.Println("Ranks:")
-	fmt.Println("Player\tKills\tDeaths")
-	fmt.Println("---------------")
-	for _, rank := range playerList["ranks"].(map[string]interface{}) {
-		rankMap, ok := rank.(map[string]interface{})
-		if !ok {
-			fmt.Println("Cannot print player list, item not a map of values")
-			return
-		}
+func printPlayerList(gt string, data []byte) {
+	fmt.Printf("---------------\nMatch type: %v\n---------------\n", gt)
 
-		p, err := player.FromMap(rankMap)
-		if err != nil {
-			fmt.Println("Could not obtain player struct:", err.Error())
-		}
-		fmt.Println(p.Nick, "\t", rankMap["kills"], "\t", rankMap["deaths"])
+	switch gt {
+	case match.DeathMatch:
+
 	}
-	fmt.Println("---------------")
-	fmt.Println()
 }
 
+// runMatchLoop obtains input from the player
+// generates messages based on the input, sends
+// them to the server and processes its responses
 func runMatchLoop(c *http.Client, ps net.PlayerSession, ms net.MatchSession) error {
-	conn, err := net.CreateSession()
+	conn, err := ws.CreateSession()
 	if err != nil {
 		return err
 	}
 
 	for {
 		msgID := getUserAction()
-		msg, err := net.CreateMessage(ps, ms, msgID)
+		msg, err := ws.NewMessage(msgID, ps, ms)
 
 		if err != nil {
 			return err
@@ -73,21 +63,15 @@ func runMatchLoop(c *http.Client, ps net.PlayerSession, ms net.MatchSession) err
 			return err
 		}
 
-		var respData map[string]interface{}
 		var data []byte
-
-		// I cannot use ReadJSON() because I need
-		// special handling of numeric values
 		_, data, err = conn.ReadMessage()
 		if err != nil {
 			return err
-		} else if err = shared.DecodeJSON(data, &respData); err != nil {
-			return err
 		}
 
-		if msgID == net.PlayerListMessage {
-			printPlayerList(ms.ID.Type, respData)
-		} else if msgID == net.QuitMessage {
+		if msgID == ws.PlayerListMessageID {
+			printPlayerList(ms.ID.Type, data)
+		} else if msgID == ws.QuitMessageID {
 			break
 		}
 	}

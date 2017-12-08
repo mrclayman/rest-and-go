@@ -33,14 +33,19 @@ func listDMMatches(ml *match.DMMatches) {
 		return
 	}
 
-	for _, match := range *ml {
-		fmt.Println("Match ID:", match.Number)
-		fmt.Println("Ranks:\nPlayer\t\tKills\tDeaths\n---")
-		for _, rank := range match.Ranks {
-			fmt.Println(rank.Player.Nick, "\t\t", rank.Kills, "\t", rank.Deaths)
-		}
+	for _, m := range *ml {
+		printDMMatch(m)
 		fmt.Println("---------------------------------------------")
 	}
+}
+
+func printDMMatch(m *match.DMMatch) {
+	fmt.Println("Match ID:", m.Number)
+	fmt.Println("Ranks:\nPlayer\t\tKills\tDeaths\n---")
+	for _, rank := range m.Ranks {
+		fmt.Println(rank.Player.Nick, "\t\t", rank.Kills, "\t", rank.Deaths)
+	}
+
 }
 
 func listCTFMatches(ml *match.CTFMatches) {
@@ -52,13 +57,17 @@ func listCTFMatches(ml *match.CTFMatches) {
 		return
 	}
 
-	for _, match := range *ml {
-		fmt.Println("Match ID:", match.Number)
-		fmt.Println("Ranks:\nPlayer\t\tKills\tDeaths\tCaptures\n---")
-		for _, rank := range match.Ranks {
-			fmt.Println(rank.Player.Nick, "\t\t", rank.Kills, "\t", rank.Deaths, "\t", rank.Captures)
-		}
+	for _, m := range *ml {
+		printCTFMatch(m)
 		fmt.Println("---------------------------------------------")
+	}
+}
+
+func printCTFMatch(m *match.CTFMatch) {
+	fmt.Println("Match ID:", m.Number)
+	fmt.Println("Ranks:\nPlayer\t\tKills\tDeaths\tCaptures\n---")
+	for _, rank := range m.Ranks {
+		fmt.Println(rank.Player.Nick, "\t\t", rank.Kills, "\t", rank.Deaths, "\t", rank.Captures)
 	}
 }
 
@@ -71,13 +80,17 @@ func listLMSMatches(ml *match.LMSMatches) {
 		return
 	}
 
-	for _, match := range *ml {
-		fmt.Println("Match ID:", match.Number)
-		fmt.Println("Ranks:\nPlayer\t\tKills\tDeaths\n---")
-		for _, rank := range match.Ranks {
-			fmt.Println(rank.Player.Nick, "\t\t", rank.Kills, "\t", rank.Deaths)
-		}
+	for _, m := range *ml {
+		printLMSMatch(m)
 		fmt.Println("---------------------------------------------")
+	}
+}
+
+func printLMSMatch(m *match.LMSMatch) {
+	fmt.Println("Match ID:", m.Number)
+	fmt.Println("Ranks:\nPlayer\t\tKills\tDeaths\n---")
+	for _, rank := range m.Ranks {
+		fmt.Println(rank.Player.Nick, "\t\t", rank.Kills, "\t", rank.Deaths)
 	}
 }
 
@@ -90,12 +103,16 @@ func listDuelMatches(ml *match.DuelMatches) {
 		return
 	}
 
-	for _, match := range *ml {
-		fmt.Println("Match ID:", match.Number)
-		fmt.Println("Ranks:\nPlayer\t\tKills\tDeaths\n---")
-		for _, rank := range match.Ranks {
-			fmt.Println(rank.Player.Nick, "\t\t", rank.Kills, "\t", rank.Deaths)
-		}
+	for _, m := range *ml {
+		printDuelMatch(m)
 		fmt.Println("---------------------------------------------")
+	}
+}
+
+func printDuelMatch(m *match.DuelMatch) {
+	fmt.Println("Match ID:", m.Number)
+	fmt.Println("Ranks:\nPlayer\t\tKills\tDeaths\n---")
+	for _, rank := range m.Ranks {
+		fmt.Println(rank.Player.Nick, "\t\t", rank.Kills, "\t", rank.Deaths)
 	}
 }

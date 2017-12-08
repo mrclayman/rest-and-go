@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/mrclayman/rest-and-go/gameclient/client/config"
 	"github.com/mrclayman/rest-and-go/gameclient/client/shared"
-	"github.com/mrclayman/rest-and-go/gameclient/config"
 )
 
 func processResponse(resp *http.Response, out interface{}) error {

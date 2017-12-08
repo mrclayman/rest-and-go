@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/mrclayman/rest-and-go/gameclient/client"
-	"github.com/mrclayman/rest-and-go/gameclient/config"
+	"github.com/mrclayman/rest-and-go/gameclient/client/config"
 )
 
 ////////////// Functions ////////////////
