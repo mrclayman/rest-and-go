@@ -1,6 +1,7 @@
 package client
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -35,12 +36,54 @@ func getUserAction() uint16 {
 	return choice
 }
 
+func printDMPlayerList(data []byte) {
+	var m match.DMMatch
+	if err := json.Unmarshal(data, &m); err != nil {
+		fmt.Println(err.Error())
+	} else {
+		printDMMatch(&m)
+	}
+}
+
+func printCTFPlayerList(data []byte) {
+	var m match.CTFMatch
+	if err := json.Unmarshal(data, &m); err != nil {
+		fmt.Println(err.Error())
+	} else {
+		printCTFMatch(&m)
+	}
+}
+
+func printLMSPlayerList(data []byte) {
+	var m match.LMSMatch
+	if err := json.Unmarshal(data, &m); err != nil {
+		fmt.Println(err.Error())
+	} else {
+		printLMSMatch(&m)
+	}
+}
+
+func printDuelPlayerList(data []byte) {
+	var m match.DuelMatch
+	if err := json.Unmarshal(data, &m); err != nil {
+		fmt.Println(err.Error())
+	} else {
+		printDuelMatch(&m)
+	}
+}
+
 func printPlayerList(gt string, data []byte) {
 	fmt.Printf("---------------\nMatch type: %v\n---------------\n", gt)
 
 	switch gt {
 	case match.DeathMatch:
-
+		printDMPlayerList(data)
+	case match.CaptureTheFlag:
+		printCTFPlayerList(data)
+	case match.LastManStanding:
+		printLMSPlayerList(data)
+	case match.Duel:
+		printDuelPlayerList(data)
 	}
 }
 

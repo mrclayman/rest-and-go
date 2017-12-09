@@ -2,12 +2,12 @@ package net
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"io/ioutil"
 	"net/http"
 
 	"github.com/mrclayman/rest-and-go/gameclient/client/config"
-	"github.com/mrclayman/rest-and-go/gameclient/client/shared"
 )
 
 func processResponse(resp *http.Response, out interface{}) error {
@@ -23,7 +23,7 @@ func processResponse(resp *http.Response, out interface{}) error {
 		return errors.New("Unexpected response content type: " + ct)
 	}
 
-	return shared.DecodeJSON(respData, out)
+	return json.Unmarshal(respData, out)
 }
 
 // Post sends a POST request to the server, then parses

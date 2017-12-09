@@ -68,7 +68,9 @@ func JoinMatch(c *http.Client, ps net.PlayerSession) error {
 // ongoing matches of all types and creates a mapping
 // between their ID's and their game types to make it
 // easier for the user to pick one. Since game type is
-// required on server's input, it
+// required on server's input, it is preferable to let
+// the player pick just the ID and add the game type
+// automatically
 func collectMatchIDsAndGameTypes(ml *match.Matchlist) map[match.Number]string {
 	retval := make(map[match.Number]string)
 	for _, m := range ml.DM {
