@@ -67,7 +67,7 @@ func main() {
 		log.Fatal("Failed to obtain valid configuration from file: " + err.Error())
 	}
 
-	if cfgFile.Log.LogMgo {
+	if cfgFile.Log.LogWS {
 		mgo.SetLogger(serverlog.Logger)
 	}
 
@@ -88,6 +88,6 @@ func main() {
 	}
 	defer app.Cleanup()
 
-	serverlog.Logger.Printf("Starting server on port %v", port)
-	serverlog.Logger.Fatal(http.ListenAndServe(":"+strconv.Itoa(int(port)), app.dispatcher))
+	serverlog.Logger.Printf("Starting server on port %v", cfgFile.Net.ListenPort)
+	serverlog.Logger.Fatal(http.ListenAndServe(":"+strconv.Itoa(int(cfgFile.Net.ListenPort)), app.dispatcher))
 }

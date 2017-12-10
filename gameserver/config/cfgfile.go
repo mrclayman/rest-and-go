@@ -2,18 +2,43 @@ package config
 
 import (
 	"errors"
-	"log"
 	"strconv"
 	"time"
 
 	"github.com/alyu/configparser"
+	"github.com/mrclayman/rest-and-go/gameserver/serverlog"
+)
+
+const (
+	// defaultListenPort sets the default value
+	// for the server's listen port setting
+	defaultListenPort uint16 = 8000
+
+	// defaultConnectionTimeout is the default database
+	// connection timeout, in seconds
+	defaultConnectionTimeout int = 15
+
+	// defaultUseSSL sets the default value for
+	// SSL-enabled database connection setting
+	defaultUseSSL bool = false
+
+	// defaultLogWS sets the default value for
+	// WS interface (mgo library) logging setting
+	defaultLogWS bool = false
 )
 
 // Config structure aggregates configuration
 // values for all aspects of the server
 type Config struct {
+	Net *NetConfig
 	DB  *DatabaseConfig
 	Log *LoggingConfig
+}
+
+// NetConfig contains configuration data
+// on the server's network settings
+type NetConfig struct {
+	ListenPort uint16
 }
 
 // DatabaseConfig contains configuration
@@ -32,7 +57,7 @@ type DatabaseConfig struct {
 // pertaining to logging of events within the
 // server
 type LoggingConfig struct {
-	LogMgo bool
+	LogWS bool
 }
 
 // Cfg is the global configuration
@@ -45,6 +70,12 @@ var Cfg *Config
 // with the proper values set.
 func ParseCfgFile(ifPath string) (*Config, error) {
 	c, err := configparser.Read(ifPath)
+	if err != nil {
+		return nil, err
+	}
+
+	var netCfg *NetConfig
+	netCfg, err = parseNetConfig(c)
 	if err != nil {
 		return nil, err
 	}
@@ -62,8 +93,30 @@ func ParseCfgFile(ifPath string) (*Config, error) {
 	}
 
 	return &Config{
+		Net: netCfg,
 		DB:  dbCfg,
 		Log: logCfg,
+	}, nil
+}
+
+// parseNetConfig parses server's network configuration
+// and returns an instance with the parsed information
+func parseNetConfig(c *configparser.Configuration) (*NetConfig, error) {
+	s, err := c.Section("network")
+	if err != nil {
+		serverlog.Logger.Println("Network settings not defined, using defaults")
+		return &NetConfig{ListenPort: defaultListenPort}, nil
+	}
+
+	port := uint64(defaultListenPort)
+	if portStr := s.ValueOf("ListenPort"); len(portStr) == 0 {
+		serverlog.Logger.Printf("Listen port not defined, using default = %v", port)
+	} else if port, err = strconv.ParseUint(portStr, 10, 16); err != nil {
+		return nil, errors.New("Invalid port specification, " + portStr + " is not a valid port number")
+	}
+
+	return &NetConfig{
+		ListenPort: uint16(port),
 	}, nil
 }
 
@@ -82,12 +135,12 @@ func parseDatabaseConfig(c *configparser.Configuration) (*DatabaseConfig, error)
 
 	dbUser := s.ValueOf("User")
 	if len(dbUser) == 0 {
-		log.Println("Warning: No database user specified")
+		serverlog.Logger.Println("Warning: No database user specified, assuming default <none>")
 	}
 
 	dbPassword := s.ValueOf("Password")
 	if len(dbPassword) == 0 {
-		log.Println("Warning: No user password provided")
+		serverlog.Logger.Println("Warning: No user password provided, assuming default <none>")
 	}
 
 	dbName := s.ValueOf("Database")
@@ -97,29 +150,20 @@ func parseDatabaseConfig(c *configparser.Configuration) (*DatabaseConfig, error)
 
 	dbRSName := s.ValueOf("ReplicaSetName")
 	if len(dbRSName) == 0 {
-		log.Println("Warning: No replica set name provided")
+		serverlog.Logger.Println("Warning: No replica set name provided, assuming default <none>")
 	}
 
-	dbConnTimeoutStr := s.ValueOf("ConnectionTimeout")
-	if len(dbConnTimeoutStr) == 0 {
-		dbConnTimeoutStr = "15"
-		log.Printf("Warning: No connection timeout defined, using default of %v seconds", dbConnTimeoutStr)
-	}
-
-	var dbConnTimeout uint64
-	dbConnTimeout, err = strconv.ParseUint(dbConnTimeoutStr, 10, 32)
-	if err != nil {
+	dbConnTimeout := uint64(defaultConnectionTimeout)
+	if dbConnTimeoutStr := s.ValueOf("ConnectionTimeout"); len(dbConnTimeoutStr) == 0 {
+		serverlog.Logger.Printf("Warning: No connection timeout defined, using default = %v seconds", dbConnTimeout)
+	} else if dbConnTimeout, err = strconv.ParseUint(dbConnTimeoutStr, 10, 32); err != nil {
 		return nil, errors.New("Failed to parse connection timeout value: " + err.Error())
 	}
 
-	dbUseSSLStr := s.ValueOf("UseSSL")
-	if len(dbUseSSLStr) == 0 {
-		dbUseSSLStr = "false"
-		log.Println("Warning: SSL use not defined, assuming " + dbUseSSLStr)
-	}
-	var dbUseSSL bool
-	dbUseSSL, err = strconv.ParseBool(dbUseSSLStr)
-	if err != nil {
+	dbUseSSL := defaultUseSSL
+	if dbUseSSLStr := s.ValueOf("UseSSL"); len(dbUseSSLStr) == 0 {
+		serverlog.Logger.Printf("Warning: SSL use not defined, assuming default = %v", dbUseSSL)
+	} else if dbUseSSL, err = strconv.ParseBool(dbUseSSLStr); err != nil {
 		return nil, errors.New("Failed to parse UseSSL value: " + err.Error())
 	}
 
@@ -137,22 +181,18 @@ func parseDatabaseConfig(c *configparser.Configuration) (*DatabaseConfig, error)
 func parseLoggingConfig(c *configparser.Configuration) (*LoggingConfig, error) {
 	s, err := c.Section("logging")
 	if err != nil {
-		log.Println("Logging options not defined, using defaults")
-		return &LoggingConfig{}, nil
+		serverlog.Logger.Println("Logging options not defined, using defaults")
+		return &LoggingConfig{LogWS: defaultLogWS}, nil
 	}
 
-	logMgoStr := s.ValueOf("LogMgo")
-	if err != nil {
-		logMgoStr = "false"
-		log.Printf("LogMgo not defined in config, using default = %v", logMgoStr)
-	}
-	var logMgo bool
-	logMgo, err = strconv.ParseBool(logMgoStr)
-	if err != nil {
-		return nil, errors.New("Failed to parse LogMgo value: " + err.Error())
+	logWS := defaultLogWS
+	if logWSStr := s.ValueOf("LogWS"); err != nil {
+		serverlog.Logger.Printf("LogWS not defined in config, using default = %v", logWS)
+	} else if logWS, err = strconv.ParseBool(logWSStr); err != nil {
+		return nil, errors.New("Failed to parse LogWS value: " + err.Error())
 	}
 
 	return &LoggingConfig{
-		LogMgo: logMgo,
+		LogWS: logWS,
 	}, nil
 }
