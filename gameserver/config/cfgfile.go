@@ -25,14 +25,24 @@ const (
 	// defaultLogWS sets the default value for
 	// WS interface (mgo library) logging setting
 	defaultLogWS bool = false
+
+	// defaultRESTMaxWorkerCount defines the maximum
+	// number of workers processing REST interface requests
+	defaultRESTMaxWorkerCount uint = 10
+
+	// defaultRESTMaxBacklogLength defines the maximum
+	// number of REST requests waiting in the processing
+	// queue
+	defaultRESTMaxBacklogLength uint = 50
 )
 
 // Config structure aggregates configuration
-// values for all aspects of the server
+// values for all configurable aspects of the server
 type Config struct {
-	Net *NetConfig
-	DB  *DatabaseConfig
-	Log *LoggingConfig
+	Net  *NetConfig
+	DB   *DatabaseConfig
+	Log  *LoggingConfig
+	REST *RESTConfig
 }
 
 // NetConfig contains configuration data
@@ -58,6 +68,13 @@ type DatabaseConfig struct {
 // server
 type LoggingConfig struct {
 	LogWS bool
+}
+
+// RESTConfig defines configuration options
+// of the REST interface
+type RESTConfig struct {
+	MaxWorkerCount   uint
+	MaxBacklogLength uint
 }
 
 // Cfg is the global configuration
@@ -92,10 +109,17 @@ func ParseCfgFile(ifPath string) (*Config, error) {
 		return nil, err
 	}
 
+	var restCfg *RESTConfig
+	restCfg, err = parseRESTConfig(c)
+	if err != nil {
+		return nil, err
+	}
+
 	return &Config{
-		Net: netCfg,
-		DB:  dbCfg,
-		Log: logCfg,
+		Net:  netCfg,
+		DB:   dbCfg,
+		Log:  logCfg,
+		REST: restCfg,
 	}, nil
 }
 
@@ -178,6 +202,8 @@ func parseDatabaseConfig(c *configparser.Configuration) (*DatabaseConfig, error)
 	}, nil
 }
 
+// parseLoggingConfig parses configuration settings pertaining
+// to server logging features
 func parseLoggingConfig(c *configparser.Configuration) (*LoggingConfig, error) {
 	s, err := c.Section("logging")
 	if err != nil {
@@ -194,5 +220,36 @@ func parseLoggingConfig(c *configparser.Configuration) (*LoggingConfig, error) {
 
 	return &LoggingConfig{
 		LogWS: logWS,
+	}, nil
+}
+
+// parseRESTConfig parses REST interface configuration options
+func parseRESTConfig(c *configparser.Configuration) (*RESTConfig, error) {
+	s, err := c.Section("rest")
+	if err != nil {
+		serverlog.Logger.Println("REST interface options not defined, using defaults")
+		return &RESTConfig{
+			MaxWorkerCount:   defaultRESTMaxWorkerCount,
+			MaxBacklogLength: defaultRESTMaxBacklogLength,
+		}, nil
+	}
+
+	maxWorkerCount := uint64(defaultRESTMaxWorkerCount)
+	if strMaxWorkerCount := s.ValueOf("MaxWorkerCount"); len(strMaxWorkerCount) == 0 {
+		serverlog.Logger.Println("Max REST worker count not defined, using default =", maxWorkerCount)
+	} else if maxWorkerCount, err = strconv.ParseUint(strMaxWorkerCount, 10, 32); err != nil {
+		return nil, errors.New("Invalid max REST worker count value: " + err.Error())
+	}
+
+	maxBacklogLength := uint64(defaultRESTMaxBacklogLength)
+	if strMaxBacklogLength := s.ValueOf("MaxBacklogLength"); len(strMaxBacklogLength) == 0 {
+		serverlog.Logger.Println("Max REST backlog length not defined, using default =", maxBacklogLength)
+	} else if maxBacklogLength, err = strconv.ParseUint(strMaxBacklogLength, 10, 32); err != nil {
+		return nil, errors.New("Invalid max REST backlog length value: " + err.Error())
+	}
+
+	return &RESTConfig{
+		MaxBacklogLength: uint(maxBacklogLength),
+		MaxWorkerCount:   uint(maxWorkerCount),
 	}, nil
 }

@@ -46,12 +46,30 @@ func createDBDialInfo(c *config.DatabaseConfig) (*mgo.DialInfo, error) {
 // Application structure binds together all the important
 // parts of the server
 type application struct {
-	appCore    *core.Core
-	dispatcher *handlers.MainDispatcher
+	core  *core.Core
+	queue handlers.RESTJobQueue
+	disp  *handlers.RESTJobDispatcher
+}
+
+// newApplication allocates a new main application objects
+func newApplication(c *core.Core, maxWorkerCount uint) *application {
+	q := make(handlers.RESTJobQueue, 500)
+	ret := &application{
+		core:  c,
+		queue: q,
+		disp:  handlers.NewRESTJobDispatcher(q, maxWorkerCount),
+	}
+
+	ret.disp.Start(c)
+	return ret
 }
 
 func (a *application) Cleanup() {
-	a.appCore.Cleanup()
+	a.core.Cleanup()
+}
+
+func (a *application) ServeHTTP(resp http.ResponseWriter, req *http.Request) {
+	a.queue <- handlers.RESTJob{Req: req, Resp: resp}
 }
 
 func main() {
@@ -82,12 +100,9 @@ func main() {
 		serverlog.Logger.Fatal("Failed to create server core object: " + err.Error())
 	}
 
-	app := &application{
-		appCore:    c,
-		dispatcher: handlers.NewMainDispatcher(c),
-	}
+	app := newApplication(c, cfgFile.REST.MaxWorkerCount)
 	defer app.Cleanup()
 
 	serverlog.Logger.Printf("Starting server on port %v", cfgFile.Net.ListenPort)
-	serverlog.Logger.Fatal(http.ListenAndServe(":"+strconv.Itoa(int(cfgFile.Net.ListenPort)), app.dispatcher))
+	serverlog.Logger.Fatal(http.ListenAndServe(":"+strconv.Itoa(int(cfgFile.Net.ListenPort)), app))
 }
